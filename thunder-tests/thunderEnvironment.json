@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "env-mesaqr-local",
+    "name": "MesaQR Local",
+    "default": true,
+    "sortNum": 10000,
+    "created": "2026-06-30T00:00:00.000Z",
+    "modified": "2026-06-30T00:00:00.000Z",
+    "data": [
+      { "name": "base_url", "value": "http://127.0.0.1:8000" },
+      { "name": "admin_email", "value": "admin@mesaqr.test" },
+      { "name": "admin_password", "value": "password" },
+      { "name": "dish_id", "value": "1" },
+      { "name": "order_id", "value": "1" },
+      { "name": "mesa", "value": "12" }
+    ]
+  }
+]

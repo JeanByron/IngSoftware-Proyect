@@ -1,0 +1,203 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "MesaQR",
+  "dateExported": "2026-06-30T00:00:00.000Z",
+  "version": "1.2",
+  "folders": [
+    { "_id": "fld-cliente", "name": "1. Cliente (QR / Domicilio)", "containerId": "", "created": "2026-06-30T00:00:00.000Z", "sortNum": 10000 },
+    { "_id": "fld-menu", "name": "2. Menú (Admin)", "containerId": "", "created": "2026-06-30T00:00:00.000Z", "sortNum": 20000 },
+    { "_id": "fld-panel", "name": "3. Panel (Pedidos)", "containerId": "", "created": "2026-06-30T00:00:00.000Z", "sortNum": 30000 }
+  ],
+  "requests": [
+    {
+      "_id": "req-presencial",
+      "colId": "col-mesaqr",
+      "containerId": "fld-cliente",
+      "name": "RF-06/07 Vista presencial (?mesa=)",
+      "url": "{{base_url}}/pedido?mesa={{mesa}}",
+      "method": "GET",
+      "sortNum": 10000,
+      "headers": [],
+      "params": [{ "name": "mesa", "value": "{{mesa}}", "isPath": false }],
+      "tests": [{ "type": "res-code", "custom": "", "action": "equal", "value": "200" }]
+    },
+    {
+      "_id": "req-domicilio",
+      "colId": "col-mesaqr",
+      "containerId": "fld-cliente",
+      "name": "RF-10 Vista domicilio (sin mesa)",
+      "url": "{{base_url}}/pedido",
+      "method": "GET",
+      "sortNum": 11000,
+      "headers": [],
+      "tests": [{ "type": "res-code", "custom": "", "action": "equal", "value": "200" }]
+    },
+    {
+      "_id": "req-store-presencial",
+      "colId": "col-mesaqr",
+      "containerId": "fld-cliente",
+      "name": "RF-15 Registrar pedido presencial",
+      "url": "{{base_url}}/pedido",
+      "method": "POST",
+      "sortNum": 12000,
+      "headers": [{ "name": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+      "body": {
+        "type": "formencoded",
+        "form": [
+          { "name": "type", "value": "presencial" },
+          { "name": "table_number", "value": "{{mesa}}" },
+          { "name": "items[0][dish_id]", "value": "1" },
+          { "name": "items[0][quantity]", "value": "2" },
+          { "name": "items[1][dish_id]", "value": "3" },
+          { "name": "items[1][quantity]", "value": "1" }
+        ]
+      },
+      "docs": "NOTA: requiere cookie de sesión + token CSRF de Laravel. Para probar el POST sin navegador, deshabilita temporalmente VerifyCsrfToken o usa el formulario de la web. Este request documenta el contrato del endpoint."
+    },
+    {
+      "_id": "req-store-domicilio",
+      "colId": "col-mesaqr",
+      "containerId": "fld-cliente",
+      "name": "RF-12/15 Registrar pedido domicilio",
+      "url": "{{base_url}}/pedido",
+      "method": "POST",
+      "sortNum": 13000,
+      "headers": [{ "name": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+      "body": {
+        "type": "formencoded",
+        "form": [
+          { "name": "type", "value": "domicilio" },
+          { "name": "address", "value": "Calle 10 # 5-20, Centro" },
+          { "name": "items[0][dish_id]", "value": "2" },
+          { "name": "items[0][quantity]", "value": "1" }
+        ]
+      },
+      "docs": "RF-12: address obligatorio. Requiere token CSRF (ver nota del request presencial)."
+    },
+    {
+      "_id": "req-confirmation",
+      "colId": "col-mesaqr",
+      "containerId": "fld-cliente",
+      "name": "Confirmación de pedido",
+      "url": "{{base_url}}/pedido/{{order_id}}/confirmacion",
+      "method": "GET",
+      "sortNum": 14000,
+      "headers": []
+    },
+    {
+      "_id": "req-dishes-index",
+      "colId": "col-mesaqr",
+      "containerId": "fld-menu",
+      "name": "RF-05 Listar platos (auth)",
+      "url": "{{base_url}}/dishes",
+      "method": "GET",
+      "sortNum": 20000,
+      "headers": [],
+      "docs": "Requiere sesión autenticada (RF-18). Redirige a /login si no hay sesión."
+    },
+    {
+      "_id": "req-dishes-create",
+      "colId": "col-mesaqr",
+      "containerId": "fld-menu",
+      "name": "Formulario crear plato",
+      "url": "{{base_url}}/dishes/create",
+      "method": "GET",
+      "sortNum": 21000,
+      "headers": []
+    },
+    {
+      "_id": "req-dishes-store",
+      "colId": "col-mesaqr",
+      "containerId": "fld-menu",
+      "name": "RF-01 Crear plato",
+      "url": "{{base_url}}/dishes",
+      "method": "POST",
+      "sortNum": 22000,
+      "headers": [{ "name": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+      "body": {
+        "type": "formencoded",
+        "form": [
+          { "name": "name", "value": "Plato de prueba" },
+          { "name": "description", "value": "Creado desde Thunder Client" },
+          { "name": "price", "value": "15000" },
+          { "name": "is_available", "value": "1" }
+        ]
+      },
+      "docs": "Requiere sesión + CSRF. RF-01."
+    },
+    {
+      "_id": "req-dishes-update",
+      "colId": "col-mesaqr",
+      "containerId": "fld-menu",
+      "name": "RF-02 Editar plato",
+      "url": "{{base_url}}/dishes/{{dish_id}}",
+      "method": "PUT",
+      "sortNum": 23000,
+      "headers": [{ "name": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+      "body": {
+        "type": "formencoded",
+        "form": [
+          { "name": "name", "value": "Plato editado" },
+          { "name": "price", "value": "18000" },
+          { "name": "is_available", "value": "1" }
+        ]
+      }
+    },
+    {
+      "_id": "req-dishes-toggle",
+      "colId": "col-mesaqr",
+      "containerId": "fld-menu",
+      "name": "RF-04 Alternar disponibilidad",
+      "url": "{{base_url}}/dishes/{{dish_id}}/toggle",
+      "method": "PATCH",
+      "sortNum": 24000,
+      "headers": []
+    },
+    {
+      "_id": "req-dishes-destroy",
+      "colId": "col-mesaqr",
+      "containerId": "fld-menu",
+      "name": "RF-03 Eliminar plato",
+      "url": "{{base_url}}/dishes/{{dish_id}}",
+      "method": "DELETE",
+      "sortNum": 25000,
+      "headers": []
+    },
+    {
+      "_id": "req-panel-index",
+      "colId": "col-mesaqr",
+      "containerId": "fld-panel",
+      "name": "RF-19 Listar pedidos",
+      "url": "{{base_url}}/panel/pedidos",
+      "method": "GET",
+      "sortNum": 30000,
+      "headers": [],
+      "docs": "Requiere sesión autenticada (RF-18)."
+    },
+    {
+      "_id": "req-panel-show",
+      "colId": "col-mesaqr",
+      "containerId": "fld-panel",
+      "name": "Detalle de pedido",
+      "url": "{{base_url}}/panel/pedidos/{{order_id}}",
+      "method": "GET",
+      "sortNum": 31000,
+      "headers": []
+    },
+    {
+      "_id": "req-panel-status",
+      "colId": "col-mesaqr",
+      "containerId": "fld-panel",
+      "name": "RF-20 Actualizar estado",
+      "url": "{{base_url}}/panel/pedidos/{{order_id}}/estado",
+      "method": "PATCH",
+      "sortNum": 32000,
+      "headers": [{ "name": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+      "body": {
+        "type": "formencoded",
+        "form": [{ "name": "status", "value": "en_preparacion" }]
+      },
+      "docs": "Valores válidos: recibido, en_preparacion, listo, entregado."
+    }
+  ]
+}
