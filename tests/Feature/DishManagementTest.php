@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Dish;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -85,6 +87,34 @@ class DishManagementTest extends TestCase
 
         $response->assertRedirect(route('dishes.index'));
         $this->assertDatabaseMissing('dishes', ['id' => $dish->id]);
+    }
+
+    /**
+     * RF-03 (caso borde corregido): borrar un plato con pedidos históricos
+     * no debe fallar; el order_item conserva su snapshot y dish_id queda en NULL.
+     */
+    public function test_can_delete_a_dish_that_has_historical_orders(): void
+    {
+        $dish  = Dish::factory()->create(['name' => 'Ajiaco', 'price' => 24000]);
+        $order = Order::factory()->create();
+        $item  = OrderItem::factory()->create([
+            'order_id'   => $order->id,
+            'dish_id'    => $dish->id,
+            'dish_name'  => 'Ajiaco',
+            'unit_price' => 24000,
+        ]);
+
+        $response = $this->actingAs($this->admin())->delete(route('dishes.destroy', $dish));
+
+        $response->assertRedirect(route('dishes.index'));         // no 500
+        $this->assertDatabaseMissing('dishes', ['id' => $dish->id]);
+        // El histórico sobrevive: dish_id NULL, pero nombre y precio congelados intactos.
+        $this->assertDatabaseHas('order_items', [
+            'id'         => $item->id,
+            'dish_id'    => null,
+            'dish_name'  => 'Ajiaco',
+            'unit_price' => 24000.00,
+        ]);
     }
 
     /** RF-04: alternar la disponibilidad de un plato (toggle). */
