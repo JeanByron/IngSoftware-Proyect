@@ -45,9 +45,10 @@
                         <div class="mt-3 flex items-center justify-between">
                             <span class="font-semibold text-gray-800">${{ number_format($dish->price, 0, ',', '.') }}</span>
                             {{-- RF-09 / RF-11 --}}
+                            {{-- RNF-12: control táctil de al menos 44x44px --}}
                             <button type="button"
                                     @click="addToCart({{ $dish->id }})"
-                                    class="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">
+                                    class="min-h-[44px] px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">
                                 Agregar
                             </button>
                         </div>
@@ -74,13 +75,13 @@
                             $<span x-text="formatMoney(item.price)"></span> c/u
                         </div>
                     </div>
-                    {{-- RF-13: modificar cantidad --}}
+                    {{-- RF-13: modificar cantidad · RNF-12: botones táctiles de 44x44px --}}
                     <div class="flex items-center gap-2">
                         <button type="button" @click="decrement(item.id)"
-                                class="w-7 h-7 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700">−</button>
+                                class="w-11 h-11 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 text-lg">−</button>
                         <span class="w-6 text-center" x-text="item.quantity"></span>
                         <button type="button" @click="increment(item.id)"
-                                class="w-7 h-7 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700">+</button>
+                                class="w-11 h-11 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 text-lg">+</button>
                     </div>
                     <div class="w-20 text-right font-medium text-gray-800">
                         $<span x-text="formatMoney(item.price * item.quantity)"></span>

@@ -40,6 +40,24 @@
     </main>
 
     <footer class="max-w-3xl mx-auto px-4 py-8 text-center text-xs text-gray-400">
+        {{-- RNF-05: enlaces a redes sociales del comercio (sólo si están configurados en .env) --}}
+        @php($redes = array_filter(config('comercio.redes', [])))
+        @if (! empty($redes))
+            <div class="mb-3 flex items-center justify-center gap-4">
+                @isset($redes['instagram'])
+                    <a href="{{ $redes['instagram'] }}" target="_blank" rel="noopener noreferrer"
+                       class="text-gray-500 hover:text-indigo-600">Instagram</a>
+                @endisset
+                @isset($redes['facebook'])
+                    <a href="{{ $redes['facebook'] }}" target="_blank" rel="noopener noreferrer"
+                       class="text-gray-500 hover:text-indigo-600">Facebook</a>
+                @endisset
+                @isset($redes['tiktok'])
+                    <a href="{{ $redes['tiktok'] }}" target="_blank" rel="noopener noreferrer"
+                       class="text-gray-500 hover:text-indigo-600">TikTok</a>
+                @endisset
+            </div>
+        @endif
         MesaQR — Plantilla web modular de pedidos por código QR
     </footer>
 </body>
