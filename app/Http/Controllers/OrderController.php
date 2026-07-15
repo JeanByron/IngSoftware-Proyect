@@ -75,18 +75,19 @@ class OrderController extends Controller
             'items.*.quantity'  => ['required', 'integer', 'min:1'],
         ]);
 
-        // RF-12: en domicilio la dirección es obligatoria.
-        if ($validated['type'] === Order::TYPE_DOMICILIO && empty($validated['address'])) {
-            return back()
-                ->withErrors(['address' => 'La dirección de entrega es obligatoria para pedidos a domicilio.'])
-                ->withInput();
-        }
+        // Reglas condicionales según el tipo de pedido:
+        //  - RF-12: en domicilio la dirección es obligatoria.
+        //  - RF-08: en presencial la mesa es obligatoria.
+        $contextError = match (true) {
+            $validated['type'] === Order::TYPE_DOMICILIO && empty($validated['address'])
+                => ['address' => 'La dirección de entrega es obligatoria para pedidos a domicilio.'],
+            $validated['type'] === Order::TYPE_PRESENCIAL && empty($validated['table_number'])
+                => ['table_number' => 'Falta el número de mesa del pedido presencial.'],
+            default => null,
+        };
 
-        // RF-08: en presencial la mesa es obligatoria.
-        if ($validated['type'] === Order::TYPE_PRESENCIAL && empty($validated['table_number'])) {
-            return back()
-                ->withErrors(['table_number' => 'Falta el número de mesa del pedido presencial.'])
-                ->withInput();
+        if ($contextError !== null) {
+            return back()->withErrors($contextError)->withInput();
         }
 
         // Cargamos los platos del carrito y revalidamos disponibilidad/precio

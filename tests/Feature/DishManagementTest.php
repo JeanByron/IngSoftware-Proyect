@@ -102,8 +102,8 @@ class DishManagementTest extends TestCase
     /** RF-05: la vista de cliente muestra sólo los platos disponibles. */
     public function test_client_view_shows_only_available_dishes(): void
     {
-        $available   = Dish::factory()->create(['name' => 'Plato disponible']);
-        $unavailable = Dish::factory()->unavailable()->create(['name' => 'Plato agotado']);
+        Dish::factory()->create(['name' => 'Plato disponible']);
+        Dish::factory()->unavailable()->create(['name' => 'Plato agotado']);
 
         $response = $this->get(route('orders.create'));
 

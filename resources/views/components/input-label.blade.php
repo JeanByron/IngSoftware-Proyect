@@ -1,5 +1,7 @@
-@props(['value'])
+@props(['value', 'for' => null])
 
-<label {{ $attributes->merge(['class' => 'block font-medium text-sm text-gray-700']) }}>
+{{-- El atributo 'for' se declara explícitamente (y no vía $attributes) para que
+     la asociación label→control sea visible al análisis estático. --}}
+<label for="{{ $for }}" {{ $attributes->merge(['class' => 'block font-medium text-sm text-gray-700']) }}>
     {{ $value ?? $slot }}
 </label>

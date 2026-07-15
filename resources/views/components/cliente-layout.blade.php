@@ -7,9 +7,9 @@
 
     <title>{{ $title ?? config('app.name', 'MesaQR') }}</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    {{-- Sin fuentes de CDN externo: Tailwind cae a la pila de fuentes del sistema
+         (ver tailwind.config.js). Evita cargar recursos de terceros sin control
+         de integridad (SRI) y permite que la app funcione sin conexión. --}}
 
     <!-- Scripts y estilos (Tailwind + Alpine compilados por Vite) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
