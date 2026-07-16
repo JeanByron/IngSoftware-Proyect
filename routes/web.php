@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\OrderPanelController;
 use App\Http\Controllers\Admin\TableQrController;
 use App\Http\Controllers\DishController;
@@ -73,6 +74,10 @@ Route::middleware(['auth'])->group(function () {
     // RNF-06: QR imprimible por mesa (codifica /pedido?mesa=N).
     Route::get('/panel/mesas/{mesa}/qr', [TableQrController::class, 'show'])
         ->whereNumber('mesa')->name('admin.tables.qr');
+
+    // RNF-16: respaldo del catálogo y de las ventas en CSV.
+    Route::get('/panel/export/catalogo.csv', [ExportController::class, 'catalogo'])->name('admin.export.catalogo');
+    Route::get('/panel/export/ventas.csv', [ExportController::class, 'ventas'])->name('admin.export.ventas');
 
     // Perfil del usuario (Breeze).
     $profilePath = '/profile';
