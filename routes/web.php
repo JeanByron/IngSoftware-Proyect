@@ -33,7 +33,10 @@ Route::controller(OrderController::class)->group(function () {
     // El registro de pedidos es público: se limita a 10 por minuto por IP
     // (throttle) para frenar el envío masivo de pedidos falsos.
     Route::post('/pedido', 'store')->middleware('throttle:10,1')->name('orders.store'); // RF-15
-    Route::get('/pedido/{order}/confirmacion', 'confirmation')->name('orders.confirmation');
+    // 'signed' exige que la URL lleve una firma válida (se genera al confirmar):
+    // impide acceder a la confirmación de otro pedido enumerando su ID.
+    Route::get('/pedido/{order}/confirmacion', 'confirmation')
+        ->middleware('signed')->name('orders.confirmation');
 });
 
 /*

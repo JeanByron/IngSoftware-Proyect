@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Dish;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 /**
@@ -55,7 +56,8 @@ class OrderFlowTest extends TestCase
         ]);
 
         $order = Order::first();
-        $response->assertRedirect(route('orders.confirmation', $order));
+        // La confirmación se entrega como URL firmada (no enumerable por ID).
+        $response->assertRedirectToSignedRoute('orders.confirmation', ['order' => $order]);
 
         $this->assertDatabaseHas('orders', [
             'type'         => 'presencial',
@@ -171,6 +173,19 @@ class OrderFlowTest extends TestCase
             'dish_name'  => 'Ajiaco',
             'unit_price' => 24000.00,
         ]);
+    }
+
+    /** La confirmación NO es enumerable: sin firma válida devuelve 403; con firma, 200. */
+    public function test_confirmation_requires_a_valid_signature(): void
+    {
+        $order = Order::factory()->create();
+
+        // Acceso directo por ID (enumeración) sin firma → 403.
+        $this->get(route('orders.confirmation', $order))->assertForbidden();
+
+        // Con la URL firmada (la que genera el sistema al confirmar) → 200.
+        $signed = URL::signedRoute('orders.confirmation', ['order' => $order]);
+        $this->get($signed)->assertOk();
     }
 
     /** Anti-spam: POST /pedido está limitado a 10 por minuto por IP (throttle). */

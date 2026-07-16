@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
 
 /**
@@ -143,8 +144,11 @@ class OrderController extends Controller
             return $order;
         });
 
+        // La confirmación viaja como URL firmada: sin la firma no se puede
+        // acceder, lo que impide enumerar pedidos ajenos por su ID incremental
+        // (evita exponer direcciones de otros clientes).
         return redirect()
-            ->route('orders.confirmation', $order)
+            ->to(URL::signedRoute('orders.confirmation', ['order' => $order]))
             ->with('status', '¡Pedido registrado! Tu número de pedido es #' . $order->id);
     }
 
