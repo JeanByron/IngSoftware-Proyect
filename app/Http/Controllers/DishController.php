@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDishRequest;
 use App\Models\Dish;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -35,11 +35,9 @@ class DishController extends Controller
     }
 
     /** RF-01: persistir un plato nuevo. */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreDishRequest $request): RedirectResponse
     {
-        $data = $this->validateDish($request);
-
-        Dish::create($data);
+        Dish::create($request->validatedData());
 
         return redirect()
             ->route('dishes.index')
@@ -53,11 +51,9 @@ class DishController extends Controller
     }
 
     /** RF-02 / RF-04: actualizar datos y/o disponibilidad. */
-    public function update(Request $request, Dish $dish): RedirectResponse
+    public function update(StoreDishRequest $request, Dish $dish): RedirectResponse
     {
-        $data = $this->validateDish($request);
-
-        $dish->update($data);
+        $dish->update($request->validatedData());
 
         return redirect()
             ->route('dishes.index')
@@ -87,19 +83,4 @@ class DishController extends Controller
             ->with('status', 'Disponibilidad actualizada.');
     }
 
-    /** Reglas de validación compartidas entre store y update (RF-01). */
-    private function validateDish(Request $request): array
-    {
-        $validated = $request->validate([
-            'name'         => ['required', 'string', 'max:255'],
-            'description'  => ['nullable', 'string', 'max:1000'],
-            'price'        => ['required', 'numeric', 'min:0'],
-            'is_available' => ['nullable', 'boolean'],
-        ]);
-
-        // El checkbox no envía valor cuando está desmarcado.
-        $validated['is_available'] = $request->boolean('is_available');
-
-        return $validated;
-    }
 }

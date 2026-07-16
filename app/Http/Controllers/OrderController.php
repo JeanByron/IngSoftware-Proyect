@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreOrderRequest;
 use App\Models\Dish;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -66,16 +67,9 @@ class OrderController extends Controller
      * Recibe el carrito como JSON (cada ítem: dish_id + quantity), el tipo
      * de pedido y, según el tipo, la mesa (RF-08) o la dirección (RF-12).
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreOrderRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'type'              => ['required', 'in:presencial,domicilio'],
-            'table_number'      => ['nullable', 'integer', 'min:1'],
-            'address'           => ['nullable', 'string', 'max:255'],
-            'items'             => ['required', 'array', 'min:1'], // RF-16: al menos un ítem
-            'items.*.dish_id'   => ['required', 'integer', 'exists:dishes,id'],
-            'items.*.quantity'  => ['required', 'integer', 'min:1'],
-        ]);
+        $validated = $request->validated();
 
         // Reglas condicionales según el tipo de pedido:
         //  - RF-12: en domicilio la dirección es obligatoria.

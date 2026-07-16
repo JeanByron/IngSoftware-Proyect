@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -54,13 +54,9 @@ class OrderPanelController extends Controller
     }
 
     /** RF-20: actualizar el estado de un pedido desde el panel. */
-    public function updateStatus(Request $request, Order $order): RedirectResponse
+    public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
     {
-        $validated = $request->validate([
-            'status' => ['required', Rule::in(Order::STATUSES)],
-        ]);
-
-        $order->update(['status' => $validated['status']]);
+        $order->update(['status' => $request->validated()['status']]);
 
         return back()->with('status', "Pedido #{$order->id} actualizado a “{$order->statusLabel()}”.");
     }
