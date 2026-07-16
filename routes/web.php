@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ExportController;
+use App\Http\Controllers\Admin\MetricsController;
 use App\Http\Controllers\Admin\OrderPanelController;
 use App\Http\Controllers\Admin\TableQrController;
 use App\Http\Controllers\DishController;
@@ -78,6 +79,9 @@ Route::middleware(['auth'])->group(function () {
     // RNF-16: respaldo del catálogo y de las ventas en CSV.
     Route::get('/panel/export/catalogo.csv', [ExportController::class, 'catalogo'])->name('admin.export.catalogo');
     Route::get('/panel/export/ventas.csv', [ExportController::class, 'ventas'])->name('admin.export.ventas');
+
+    // Observabilidad: métricas en formato Prometheus (medir RNF-02/03).
+    Route::get('/metrics', MetricsController::class)->name('admin.metrics');
 
     // Perfil del usuario (Breeze).
     $profilePath = '/profile';
