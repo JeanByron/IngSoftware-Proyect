@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\OrderPanelController;
+use App\Http\Controllers\Admin\TableQrController;
 use App\Http\Controllers\DishController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
@@ -68,6 +69,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pedidos/{order}', 'show')->name('show');
         Route::patch('/pedidos/{order}/estado', 'updateStatus')->name('update-status'); // RF-20
     });
+
+    // RNF-06: QR imprimible por mesa (codifica /pedido?mesa=N).
+    Route::get('/panel/mesas/{mesa}/qr', [TableQrController::class, 'show'])
+        ->whereNumber('mesa')->name('admin.tables.qr');
 
     // Perfil del usuario (Breeze).
     $profilePath = '/profile';
