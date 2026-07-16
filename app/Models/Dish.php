@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Plato del menú (Módulo de Gestión de Menú).
@@ -12,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 class Dish extends Model
 {
     use HasFactory;
+
+    /** Clave de caché del catálogo de platos disponibles (RNF-04). */
+    public const CATALOG_CACHE_KEY = 'catalogo.disponibles';
 
     protected $fillable = [
         'name',
@@ -26,11 +31,44 @@ class Dish extends Model
     ];
 
     /**
+     * RNF-04: cualquier cambio en un plato (crear/editar/borrar/toggle) invalida
+     * la caché del catálogo automáticamente, vía eventos de modelo de Eloquent.
+     * Así no hay que recordar limpiarla en cada método del controlador.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn () => self::forgetCatalogCache());   // create + update
+        static::deleted(fn () => self::forgetCatalogCache());
+    }
+
+    /**
      * Scope para mostrar únicamente platos disponibles.
      * RF-05: las vistas de cliente sólo deben mostrar platos disponibles.
      */
     public function scopeAvailable(Builder $query): Builder
     {
         return $query->where('is_available', true);
+    }
+
+    /**
+     * RNF-04: catálogo de platos disponibles con caché.
+     * Evita golpear la BD en cada visita del cliente (consulta muy frecuente).
+     * Se invalida con forgetCatalogCache() al mutar cualquier plato.
+     *
+     * @return Collection<int, Dish>
+     */
+    public static function availableCached(): Collection
+    {
+        return Cache::remember(
+            self::CATALOG_CACHE_KEY,
+            now()->addMinutes(10),
+            fn () => self::available()->orderBy('name')->get(),
+        );
+    }
+
+    /** Invalida la caché del catálogo (llamar tras crear/editar/borrar/togglear). */
+    public static function forgetCatalogCache(): void
+    {
+        Cache::forget(self::CATALOG_CACHE_KEY);
     }
 }

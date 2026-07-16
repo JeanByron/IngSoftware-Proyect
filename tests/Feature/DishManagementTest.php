@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 /**
@@ -127,6 +128,28 @@ class DishManagementTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('dishes.toggle', $dish));
         $this->assertTrue($dish->fresh()->is_available);
+    }
+
+    /** RNF-04: el catálogo se cachea; una nueva consulta no vuelve a la BD. */
+    public function test_catalog_is_cached(): void
+    {
+        Cache::forget(Dish::CATALOG_CACHE_KEY);
+        Dish::factory()->create(['name' => 'Bandeja']);
+
+        $this->assertFalse(Cache::has(Dish::CATALOG_CACHE_KEY)); // aún no consultado
+
+        Dish::availableCached();                                 // primera lectura → cachea
+        $this->assertTrue(Cache::has(Dish::CATALOG_CACHE_KEY));  // ya está en caché
+    }
+
+    /** RNF-04: crear/editar/borrar un plato invalida la caché del catálogo. */
+    public function test_mutating_a_dish_invalidates_the_catalog_cache(): void
+    {
+        Dish::availableCached();                                 // llena la caché
+        $this->assertTrue(Cache::has(Dish::CATALOG_CACHE_KEY));
+
+        Dish::factory()->create();                               // saved → invalida
+        $this->assertFalse(Cache::has(Dish::CATALOG_CACHE_KEY));
     }
 
     /** RF-05: la vista de cliente muestra sólo los platos disponibles. */

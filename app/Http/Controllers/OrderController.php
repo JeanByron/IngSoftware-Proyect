@@ -41,7 +41,8 @@ class OrderController extends Controller
     public function create(Request $request): View
     {
         // RF-05: sólo platos disponibles llegan a la vista de cliente.
-        $dishes = Dish::available()->orderBy('name')->get();
+        // RNF-04: se sirven desde caché (consulta muy frecuente del catálogo).
+        $dishes = Dish::availableCached();
 
         $tableNumber = $this->resolveTableNumber($request);
 
