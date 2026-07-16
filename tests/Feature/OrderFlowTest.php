@@ -172,4 +172,23 @@ class OrderFlowTest extends TestCase
             'unit_price' => 24000.00,
         ]);
     }
+
+    /** Anti-spam: POST /pedido está limitado a 10 por minuto por IP (throttle). */
+    public function test_order_endpoint_is_rate_limited(): void
+    {
+        $dish = Dish::factory()->create();
+        $payload = [
+            'type'         => 'presencial',
+            'table_number' => 1,
+            'items'        => [['dish_id' => $dish->id, 'quantity' => 1]],
+        ];
+
+        // Las primeras 10 peticiones se aceptan (no 429).
+        for ($i = 0; $i < 10; $i++) {
+            $this->post(route('orders.store'), $payload)->assertStatus(302);
+        }
+
+        // La 11ª supera el límite → 429 Too Many Requests.
+        $this->post(route('orders.store'), $payload)->assertStatus(429);
+    }
 }

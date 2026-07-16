@@ -30,7 +30,9 @@ Route::get('/', fn () => redirect()->route('orders.create'))->name('home');
 */
 Route::controller(OrderController::class)->group(function () {
     Route::get('/pedido', 'create')->name('orders.create');         // RF-06 / RF-10
-    Route::post('/pedido', 'store')->name('orders.store');          // RF-15
+    // El registro de pedidos es público: se limita a 10 por minuto por IP
+    // (throttle) para frenar el envío masivo de pedidos falsos.
+    Route::post('/pedido', 'store')->middleware('throttle:10,1')->name('orders.store'); // RF-15
     Route::get('/pedido/{order}/confirmacion', 'confirmation')->name('orders.confirmation');
 });
 
