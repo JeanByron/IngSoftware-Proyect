@@ -55,15 +55,22 @@ class Dish extends Model
      * Evita golpear la BD en cada visita del cliente (consulta muy frecuente).
      * Se invalida con forgetCatalogCache() al mutar cualquier plato.
      *
+     * Se cachea un ARRAY plano (no modelos Eloquent) y se rehidrata al leer:
+     * serializar objetos Eloquent en el store 'database' es frágil (puede volver
+     * como __PHP_Incomplete_Class al deserializar); un array siempre round-trip
+     * seguro. hydrate() reconstruye la colección de modelos para las vistas.
+     *
      * @return Collection<int, Dish>
      */
     public static function availableCached(): Collection
     {
-        return Cache::remember(
+        $rows = Cache::remember(
             self::CATALOG_CACHE_KEY,
             now()->addMinutes(10),
-            fn () => self::available()->orderBy('name')->get(),
+            fn () => self::available()->orderBy('name')->get()->toArray(),
         );
+
+        return self::hydrate($rows);
     }
 
     /** Invalida la caché del catálogo (llamar tras crear/editar/borrar/togglear). */
