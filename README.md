@@ -24,17 +24,32 @@ Detrás hay un **panel del restaurante** (autenticado) donde el personal adminis
 
 | Módulo | Controlador | Rutas | Requerimientos |
 |--------|-------------|-------|----------------|
-| **1. Gestión de Menú** | `DishController` | `/dishes` (resource) + `/dishes/{dish}/toggle` | RF-01 … RF-05 |
-| **2. Flujo de Cliente** | `OrderController` | `/pedido`, `POST /pedido`, `/pedido/{order}/confirmacion` | RF-05 … RF-17 |
+| **1. Gestión de Menú** | `DishController` | `/dishes` (resource) + `/dishes/{dish}/toggle` | RF-01 … RF-05, RNF-01 (imágenes) |
+| **2. Flujo de Cliente** | `OrderController` | `/pedido`, `POST /pedido`, `/pedido/{order}/pago`, `/pedido/{order}/confirmacion` | RF-05 … RF-17, RNF-08 (pago) |
 | **3. Panel del Restaurante** | `Admin\OrderPanelController` | `/panel/pedidos`, `/panel/pedidos/{order}`, `PATCH …/estado` | RF-19, RF-20 |
+| **Comanda de cocina** | `Admin\ComandaController` | `/panel/pedidos/{order}/comanda` (txt) | RNF-07 · flag `MODULE_COMANDA` |
+| **Reserva de mesas** | `Admin\ReservationController` | `/reservas` (resource) | flag `MODULE_RESERVAS` |
+| **Export CSV** | `Admin\ExportController` | `/panel/export/*.csv` | RNF-16 · flag `MODULE_EXPORT` |
 | **Auth (panel)** | Laravel Breeze | `/login`, `/logout`, … | RF-18 |
-| **Reserva de mesas** | — (futuro) | — | Fuera del MVP |
+
+### Módulos activables (feature flags · RNF-10)
+
+`config/modules.php` lee interruptores `MODULE_*` del `.env`. Un módulo apagado
+desaparece en **3 capas** (ruta 404 + navegación oculta + lógica inactiva), sin
+tocar el código: la misma plantilla sirve a comercios distintos según su `.env`.
+Los módulos básicos (menú, pedidos, panel, QR) siempre están activos. El **cobro
+del pedido (RNF-08) es obligatorio**, por eso no es un flag.
+
+> El pago usa `App\Services\Payments\PaymentGateway` (interfaz) con
+> `FakePaymentGateway` (simulado) por defecto; integrar una pasarela real es
+> cambiar el binding en `AppServiceProvider`.
 
 ### Modelos
 
-- `Dish` — platos del menú (`name`, `description`, `price`, `is_available`).
-- `Order` — pedidos (`type`, `table_number`, `address`, `total`, `status`).
+- `Dish` — platos del menú (`name`, `description`, `image_path`, `price`, `is_available`).
+- `Order` — pedidos (`type`, `table_number`, `address`, `total`, `status`, `payment_status`, `payment_method`, `payment_reference`, `paid_at`).
 - `OrderItem` — líneas del pedido (cantidad + precio congelado).
+- `Reservation` — reservas de mesa (`customer_name`, `reserved_at`, `party_size`, `status`, …).
 
 ## Puesta en marcha
 
@@ -119,3 +134,18 @@ La carpeta `thunder-tests/` trae una colección lista para la extensión
 | RF-18 login del panel | Laravel Breeze + middleware `auth` |
 | RF-19 listar pedidos | `OrderPanelController@index` |
 | RF-20 actualizar estado | `OrderPanelController@updateStatus` |
+
+### RNF destacados
+
+| RNF | Dónde se implementa |
+|----|---------------------|
+| RNF-01 imágenes de platos | `image_path` + disco `public`; `Dish::imageUrl()`, fallback en vistas |
+| RNF-04 caché de catálogo | `Dish::availableCached` (`Cache::remember`) + invalidación por eventos |
+| RNF-06 QR por mesa | `Admin\TableQrController` (SVG, `bacon/bacon-qr-code`) |
+| RNF-07 comanda de cocina | `Admin\ComandaController` (texto plano) · flag `MODULE_COMANDA` |
+| RNF-08 cobro del pedido | `App\Services\Payments\*` + `OrderController@showPayment/processPayment` (pasarela simulada) |
+| RNF-10 módulos activables | `config/modules.php` + `if(config('modules.*'))` en rutas y `@if` en vistas |
+| RNF-16 export CSV | `Admin\ExportController` (streaming + `chunk`) · flag `MODULE_EXPORT` |
+| RNF-24 branding por `.env` | `config/comercio.php` (nombre + logo) |
+
+> Ejecuta la suite con `php artisan test` — **85 tests / 246 aserciones** en verde.
