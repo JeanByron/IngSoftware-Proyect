@@ -31,7 +31,8 @@ return [
     // RNF-07: comanda/ticket de cocina imprimible por pedido.
     'comanda'  => env('MODULE_COMANDA', true),
 
-    // RNF-08: cobro del pedido (pasarela simulada; driver real enchufable).
-    'pagos'    => env('MODULE_PAGOS', false),
+    // Nota: el cobro del pedido (RNF-08) NO es un módulo activable: es un paso
+    // obligatorio del flujo de pedido (pasarela simulada, driver real
+    // enchufable). Por eso no lleva flag aquí.
 
 ];

@@ -21,6 +21,12 @@
                     <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
                         {{ __('Pedidos') }}
                     </x-nav-link>
+                    {{-- RNF-10: enlace visible sólo si el módulo de reservas está activo. --}}
+                    @if (config('modules.reservas'))
+                        <x-nav-link :href="route('admin.reservations.index')" :active="request()->routeIs('admin.reservations.*')">
+                            {{ __('Reservas') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -86,6 +92,11 @@
             <x-responsive-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
                 {{ __('Pedidos') }}
             </x-responsive-nav-link>
+            @if (config('modules.reservas'))
+                <x-responsive-nav-link :href="route('admin.reservations.index')" :active="request()->routeIs('admin.reservations.*')">
+                    {{ __('Reservas') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

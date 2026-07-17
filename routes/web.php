@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\MetricsController;
 use App\Http\Controllers\Admin\OrderPanelController;
+use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\TableQrController;
 use App\Http\Controllers\DishController;
 use App\Http\Controllers\OrderController;
@@ -75,6 +76,19 @@ Route::middleware(['auth'])->group(function () {
     // RNF-06: QR imprimible por mesa (codifica /pedido?mesa=N).
     Route::get('/panel/mesas/{mesa}/qr', [TableQrController::class, 'show'])
         ->whereNumber('mesa')->name('admin.tables.qr');
+
+    /*
+    | MÓDULO ACTIVABLE — Reserva de mesas (RNF-10, flag MODULE_RESERVAS)
+    | Módulo completo (modelo + CRUD + vistas) gobernado por su flag: si está
+    | apagado, NINGUNA de estas rutas se registra -> /reservas responde 404.
+    | Encender el módulo en un comercio = MODULE_RESERVAS=true en su .env.
+    */
+    if (config('modules.reservas')) {
+        Route::resource('reservas', ReservationController::class)
+            ->except(['show'])
+            ->parameters(['reservas' => 'reservation'])
+            ->names('admin.reservations');
+    }
 
     // RNF-16: respaldo del catálogo y de las ventas en CSV.
     // Módulo opcional (RNF-10): si el flag está apagado, las rutas no se

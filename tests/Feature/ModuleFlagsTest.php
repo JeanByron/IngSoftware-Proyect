@@ -45,4 +45,18 @@ class ModuleFlagsTest extends TestCase
             ->assertOk()
             ->assertSee('Exportar ventas CSV');
     }
+
+    /**
+     * El módulo Reservas está apagado por defecto: no registra rutas ni
+     * enlace de navegación en el dashboard.
+     */
+    public function test_reservations_module_is_off_by_default(): void
+    {
+        $this->assertFalse(Route::has('admin.reservations.index'));
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('>Reservas<', false);
+    }
 }
