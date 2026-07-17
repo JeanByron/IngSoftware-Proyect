@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreDishRequest;
 use App\Models\Dish;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 /**
@@ -37,7 +38,15 @@ class DishController extends Controller
     /** RF-01: persistir un plato nuevo. */
     public function store(StoreDishRequest $request): RedirectResponse
     {
-        Dish::create($request->validatedData());
+        $data = $request->validatedData();
+
+        // RNF-01: si viene imagen, se guarda en el disco 'public' y se persiste
+        // sólo su ruta relativa.
+        if ($request->hasFile('image')) {
+            $data['image_path'] = $request->file('image')->store('dishes', 'public');
+        }
+
+        Dish::create($data);
 
         return redirect()
             ->route('dishes.index')
@@ -53,7 +62,18 @@ class DishController extends Controller
     /** RF-02 / RF-04: actualizar datos y/o disponibilidad. */
     public function update(StoreDishRequest $request, Dish $dish): RedirectResponse
     {
-        $dish->update($request->validatedData());
+        $data = $request->validatedData();
+
+        // RNF-01: al reemplazar la imagen se borra la anterior para no dejar
+        // archivos huérfanos en el disco.
+        if ($request->hasFile('image')) {
+            if ($dish->image_path) {
+                Storage::disk('public')->delete($dish->image_path);
+            }
+            $data['image_path'] = $request->file('image')->store('dishes', 'public');
+        }
+
+        $dish->update($data);
 
         return redirect()
             ->route('dishes.index')
@@ -63,6 +83,11 @@ class DishController extends Controller
     /** RF-03: eliminar un plato. */
     public function destroy(Dish $dish): RedirectResponse
     {
+        // RNF-01: limpiar también el archivo de imagen asociado.
+        if ($dish->image_path) {
+            Storage::disk('public')->delete($dish->image_path);
+        }
+
         $dish->delete();
 
         return redirect()

@@ -21,6 +21,27 @@
         <x-input-error :messages="$errors->get('description')" class="mt-2" />
     </div>
 
+    {{-- RNF-01: imagen del plato (opcional) --}}
+    <div>
+        <x-input-label for="image" :value="__('Imagen del plato (opcional)')" />
+
+        @if ($dish && $dish->imageUrl())
+            <div class="mt-2 mb-3">
+                <img src="{{ $dish->imageUrl() }}" alt="{{ $dish->name }}"
+                     class="h-32 w-32 object-cover rounded-lg border border-cream-200">
+                <p class="mt-1 text-xs text-cocoa-500">Imagen actual. Sube otra para reemplazarla.</p>
+            </div>
+        @endif
+
+        <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp"
+               class="mt-1 block w-full text-sm text-cocoa-700
+                      file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+                      file:text-sm file:font-semibold file:bg-cocoa-800 file:text-cream-50
+                      hover:file:bg-cocoa-700 file:cursor-pointer transition duration-150">
+        <p class="mt-1 text-xs text-cocoa-500">JPG, PNG o WebP. Máximo 2 MB.</p>
+        <x-input-error :messages="$errors->get('image')" class="mt-2" />
+    </div>
+
     {{-- RF-01: precio --}}
     <div>
         <x-input-label for="price" :value="__('Precio')" />

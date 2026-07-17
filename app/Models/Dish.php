@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Plato del menú (Módulo de Gestión de Menú).
@@ -21,6 +22,7 @@ class Dish extends Model
     protected $fillable = [
         'name',
         'description',
+        'image_path',
         'price',
         'is_available',
     ];
@@ -77,5 +79,16 @@ class Dish extends Model
     public static function forgetCatalogCache(): void
     {
         Cache::forget(self::CATALOG_CACHE_KEY);
+    }
+
+    /**
+     * RNF-01: URL pública de la imagen del plato, o null si no tiene.
+     * La vista usa este valor para mostrar la foto o un marcador de posición.
+     */
+    public function imageUrl(): ?string
+    {
+        return $this->image_path
+            ? Storage::disk('public')->url($this->image_path)
+            : null;
     }
 }

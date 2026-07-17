@@ -37,6 +37,13 @@
                 @foreach ($dishes as $dish)
                     <div class="card-brand p-4 flex flex-col justify-between transition duration-150 hover:shadow-md hover:border-caramel-300">
                         <div>
+                            {{-- RNF-01: foto del plato (o marcador de posición) --}}
+                            @if ($dish->imageUrl())
+                                <img src="{{ $dish->imageUrl() }}" alt="{{ $dish->name }}"
+                                     class="w-full aspect-video object-cover rounded-lg mb-3">
+                            @else
+                                <div class="w-full aspect-video rounded-lg mb-3 bg-cream-100 flex items-center justify-center text-3xl text-cocoa-300" aria-hidden="true">🍽️</div>
+                            @endif
                             <div class="font-semibold text-cocoa-900">{{ $dish->name }}</div>
                             @if ($dish->description)
                                 <p class="text-sm text-cocoa-600 mt-1">{{ $dish->description }}</p>

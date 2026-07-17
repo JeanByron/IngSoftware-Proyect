@@ -9,7 +9,7 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="card-brand p-6">
                 {{-- RF-01: crear plato --}}
-                <form method="POST" action="{{ route('dishes.store') }}">
+                <form method="POST" action="{{ route('dishes.store') }}" enctype="multipart/form-data">
                     @csrf
                     @include('dishes._form')
                 </form>

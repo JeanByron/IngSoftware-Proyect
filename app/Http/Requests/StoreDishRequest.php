@@ -24,6 +24,8 @@ class StoreDishRequest extends FormRequest
         return [
             'name'         => ['required', 'string', 'max:255'],
             'description'  => ['nullable', 'string', 'max:1000'],
+            // RNF-01: imagen opcional (jpg/png/webp, máx 2 MB).
+            'image'        => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'price'        => ['required', 'numeric', 'min:0'],
             'is_available' => ['nullable', 'boolean'],
         ];
@@ -39,6 +41,10 @@ class StoreDishRequest extends FormRequest
     {
         $data = $this->validated();
         $data['is_available'] = $this->boolean('is_available');
+
+        // La imagen (archivo) se persiste aparte en el controlador; no es una
+        // columna con este nombre.
+        unset($data['image']);
 
         return $data;
     }

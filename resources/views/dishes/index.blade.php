@@ -38,10 +38,21 @@
                                     @foreach ($dishes as $dish)
                                         <tr class="hover:bg-cream-50 transition duration-150">
                                             <td class="px-6 py-3">
-                                                <div class="font-medium text-cocoa-900">{{ $dish->name }}</div>
-                                                @if ($dish->description)
-                                                    <div class="text-sm text-cocoa-600">{{ \Illuminate\Support\Str::limit($dish->description, 60) }}</div>
-                                                @endif
+                                                <div class="flex items-center gap-3">
+                                                    {{-- RNF-01: miniatura o marcador de posición --}}
+                                                    @if ($dish->imageUrl())
+                                                        <img src="{{ $dish->imageUrl() }}" alt="{{ $dish->name }}"
+                                                             class="h-12 w-12 object-cover rounded-lg border border-cream-200 shrink-0">
+                                                    @else
+                                                        <div class="h-12 w-12 rounded-lg bg-cream-100 border border-cream-200 flex items-center justify-center text-cocoa-300 shrink-0" aria-hidden="true">🍽️</div>
+                                                    @endif
+                                                    <div>
+                                                        <div class="font-medium text-cocoa-900">{{ $dish->name }}</div>
+                                                        @if ($dish->description)
+                                                            <div class="text-sm text-cocoa-600">{{ \Illuminate\Support\Str::limit($dish->description, 60) }}</div>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-3 whitespace-nowrap font-display text-cocoa-900 tracking-tight">${{ number_format($dish->price, 0, ',', '.') }}</td>
                                             <td class="px-6 py-3">

@@ -7,7 +7,9 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -116,6 +118,73 @@ class DishManagementTest extends TestCase
             'dish_name'  => 'Ajiaco',
             'unit_price' => 24000.00,
         ]);
+    }
+
+    /** RNF-01: al crear un plato con imagen, se guarda el archivo y su ruta. */
+    public function test_admin_can_create_a_dish_with_image(): void
+    {
+        Storage::fake('public');
+
+        // Se usa create() con mime explícito (no image()) porque el entorno no
+        // tiene la extensión GD; image() la requiere para generar el binario.
+        $this->actingAs($this->admin())->post(route('dishes.store'), [
+            'name'  => 'Con foto',
+            'price' => 12000,
+            'image' => UploadedFile::fake()->create('plato.jpg', 200, 'image/jpeg'),
+        ])->assertRedirect(route('dishes.index'));
+
+        $dish = Dish::firstWhere('name', 'Con foto');
+        $this->assertNotNull($dish->image_path);
+        Storage::disk('public')->assertExists($dish->image_path);
+    }
+
+    /** RNF-01: sólo se aceptan imágenes válidas (un .pdf es rechazado). */
+    public function test_dish_image_must_be_a_valid_image(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin())->post(route('dishes.store'), [
+            'name'  => 'Archivo malo',
+            'price' => 9000,
+            'image' => UploadedFile::fake()->create('documento.pdf', 100, 'application/pdf'),
+        ])->assertSessionHasErrors('image');
+
+        $this->assertDatabaseMissing('dishes', ['name' => 'Archivo malo']);
+    }
+
+    /** RNF-01: reemplazar la imagen borra la anterior (sin archivos huérfanos). */
+    public function test_updating_image_deletes_the_previous_file(): void
+    {
+        Storage::fake('public');
+
+        $dish = Dish::factory()->create([
+            'image_path' => UploadedFile::fake()->create('vieja.jpg', 100, 'image/jpeg')->store('dishes', 'public'),
+        ]);
+        $anterior = $dish->image_path;
+
+        $this->actingAs($this->admin())->put(route('dishes.update', $dish), [
+            'name'  => $dish->name,
+            'price' => $dish->price,
+            'image' => UploadedFile::fake()->create('nueva.jpg', 100, 'image/jpeg'),
+        ])->assertRedirect(route('dishes.index'));
+
+        Storage::disk('public')->assertMissing($anterior);
+        Storage::disk('public')->assertExists($dish->fresh()->image_path);
+    }
+
+    /** RNF-01: al eliminar el plato se borra también su imagen. */
+    public function test_deleting_a_dish_removes_its_image(): void
+    {
+        Storage::fake('public');
+
+        $dish = Dish::factory()->create([
+            'image_path' => UploadedFile::fake()->create('foto.jpg', 100, 'image/jpeg')->store('dishes', 'public'),
+        ]);
+        $ruta = $dish->image_path;
+
+        $this->actingAs($this->admin())->delete(route('dishes.destroy', $dish));
+
+        Storage::disk('public')->assertMissing($ruta);
     }
 
     /** RF-04: alternar la disponibilidad de un plato (toggle). */

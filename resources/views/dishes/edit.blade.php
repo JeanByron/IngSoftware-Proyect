@@ -9,7 +9,7 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="card-brand p-6">
                 {{-- RF-02: editar plato --}}
-                <form method="POST" action="{{ route('dishes.update', $dish) }}">
+                <form method="POST" action="{{ route('dishes.update', $dish) }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     @include('dishes._form', ['dish' => $dish])
