@@ -47,9 +47,10 @@
     </main>
 
     <footer class="max-w-3xl mx-auto px-4 py-8 text-center text-xs text-cocoa-500">
-        {{-- RNF-05: enlaces a redes sociales del comercio (sólo si están configurados en .env) --}}
+        {{-- RNF-05: enlaces a redes sociales del comercio (sólo si están configurados en .env).
+             RNF-10: además, el módulo de redes debe estar activo. --}}
         @php($redes = array_filter(config('comercio.redes', [])))
-        @if (! empty($redes))
+        @if (config('modules.redes') && ! empty($redes))
             <div class="mb-3 flex items-center justify-center gap-4">
                 @isset($redes['instagram'])
                     <a href="{{ $redes['instagram'] }}" target="_blank" rel="noopener noreferrer"

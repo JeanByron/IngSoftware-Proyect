@@ -14,6 +14,27 @@ class MetricsTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * El módulo de métricas está apagado por defecto (RNF-10). Se enciende su
+     * flag ANTES de bootear la app para que la ruta /metrics quede registrada.
+     */
+    protected function setUp(): void
+    {
+        putenv('MODULE_METRICS=true');
+        $_ENV['MODULE_METRICS'] = 'true';
+        $_SERVER['MODULE_METRICS'] = 'true';
+
+        parent::setUp();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        putenv('MODULE_METRICS');
+        unset($_ENV['MODULE_METRICS'], $_SERVER['MODULE_METRICS']);
+    }
+
     /** /metrics exige autenticación. */
     public function test_guest_cannot_access_metrics(): void
     {

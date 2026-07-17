@@ -38,12 +38,15 @@
                     <p class="mt-1 text-sm text-cocoa-600">Generar el código QR imprimible de cada mesa.</p>
                 </a>
 
-                <a href="{{ route('admin.export.ventas') }}"
-                   class="card-brand block p-6 transition duration-150 hover:shadow-md hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">
-                    <span class="text-3xl" aria-hidden="true">📊</span>
-                    <h3 class="mt-3 font-display tracking-tight text-lg font-semibold text-cocoa-950">Exportar ventas CSV</h3>
-                    <p class="mt-1 text-sm text-cocoa-600">Descargar el respaldo de ventas en formato CSV.</p>
-                </a>
+                {{-- RNF-10: la tarjeta sólo aparece si el módulo de export está activo. --}}
+                @if (config('modules.export'))
+                    <a href="{{ route('admin.export.ventas') }}"
+                       class="card-brand block p-6 transition duration-150 hover:shadow-md hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">
+                        <span class="text-3xl" aria-hidden="true">📊</span>
+                        <h3 class="mt-3 font-display tracking-tight text-lg font-semibold text-cocoa-950">Exportar ventas CSV</h3>
+                        <p class="mt-1 text-sm text-cocoa-600">Descargar el respaldo de ventas en formato CSV.</p>
+                    </a>
+                @endif
             </div>
         </div>
     </div>

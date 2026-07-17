@@ -77,11 +77,19 @@ Route::middleware(['auth'])->group(function () {
         ->whereNumber('mesa')->name('admin.tables.qr');
 
     // RNF-16: respaldo del catálogo y de las ventas en CSV.
-    Route::get('/panel/export/catalogo.csv', [ExportController::class, 'catalogo'])->name('admin.export.catalogo');
-    Route::get('/panel/export/ventas.csv', [ExportController::class, 'ventas'])->name('admin.export.ventas');
+    // Módulo opcional (RNF-10): si el flag está apagado, las rutas no se
+    // registran -> /panel/export/*.csv responde 404 aunque se escriba a mano.
+    if (config('modules.export')) {
+        Route::get('/panel/export/catalogo.csv', [ExportController::class, 'catalogo'])->name('admin.export.catalogo');
+        Route::get('/panel/export/ventas.csv', [ExportController::class, 'ventas'])->name('admin.export.ventas');
+    }
 
     // Observabilidad: métricas en formato Prometheus (medir RNF-02/03).
-    Route::get('/metrics', MetricsController::class)->name('admin.metrics');
+    // Módulo opcional (RNF-10): normalmente sólo se enciende en entornos con
+    // monitorización (Prometheus).
+    if (config('modules.metrics')) {
+        Route::get('/metrics', MetricsController::class)->name('admin.metrics');
+    }
 
     // Perfil del usuario (Breeze).
     $profilePath = '/profile';
