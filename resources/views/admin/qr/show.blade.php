@@ -5,19 +5,24 @@
         </h2>
     </x-slot>
 
+    {{-- El SVG del QR trae un tamaño fijo (300px); lo forzamos a escalar al
+         contenedor para que no desborde ni se solape con la URL. --}}
+    <style>
+        #qr-imprimible svg { width: 100%; height: auto; display: block; }
+    </style>
+
     <div class="py-8">
         <div class="max-w-md mx-auto px-4">
-            {{-- RNF-06: QR imprimible que codifica /pedido?mesa=N --}}
             <div id="qr-imprimible" class="bg-white rounded-lg shadow-sm p-8 text-center">
                 <h1 class="text-2xl font-bold text-gray-800">Mesa {{ $mesa }}</h1>
-                <p class="text-gray-500 text-sm mb-4">Escanea para ver la carta y pedir</p>
+                <p class="text-gray-500 text-sm mb-6">Escanea para ver la carta y pedir</p>
 
-                <div class="mx-auto w-64 h-64">
-                    {{-- El SVG viene del servidor (bacon-qr-code), es seguro imprimirlo --}}
+                {{-- RNF-06: QR imprimible que codifica /pedido?mesa=N --}}
+                <div class="mx-auto w-64">
                     {!! $svg !!}
                 </div>
 
-                <p class="mt-4 text-xs text-gray-400 break-all">{{ $url }}</p>
+                <p class="mt-6 text-xs text-gray-400 break-all">{{ $url }}</p>
             </div>
 
             <div class="mt-6 flex justify-center gap-3 print:hidden">
