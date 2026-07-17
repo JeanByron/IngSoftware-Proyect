@@ -56,14 +56,15 @@ class OrderFlowTest extends TestCase
         ]);
 
         $order = Order::first();
-        // La confirmación se entrega como URL firmada (no enumerable por ID).
-        $response->assertRedirectToSignedRoute('orders.confirmation', ['order' => $order]);
+        // RNF-08: tras registrar, se envía al cobro (URL firmada, no enumerable).
+        $response->assertRedirectToSignedRoute('orders.payment', ['order' => $order]);
 
         $this->assertDatabaseHas('orders', [
-            'type'         => 'presencial',
-            'table_number' => 5,
-            'address'      => null,
-            'status'       => Order::STATUS_RECIBIDO, // RF-17
+            'type'           => 'presencial',
+            'table_number'   => 5,
+            'address'        => null,
+            'status'         => Order::STATUS_RECIBIDO,       // RF-17
+            'payment_status' => Order::PAYMENT_PENDIENTE,     // RNF-08: aún sin pagar
         ]);
     }
 

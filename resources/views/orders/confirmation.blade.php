@@ -46,6 +46,18 @@
             <span class="font-semibold text-cocoa-900">Total</span>
             <span class="font-display font-bold text-lg text-cocoa-900">${{ number_format($order->total, 0, ',', '.') }}</span>
         </div>
+
+        {{-- RNF-08: estado del pago --}}
+        @if ($order->isPaid())
+            <div class="mt-3 pt-3 border-t border-cream-200 flex items-center justify-between text-sm">
+                <span class="inline-flex items-center gap-1.5 text-green-700 font-medium">
+                    <span aria-hidden="true">✓</span> Pagado
+                </span>
+                @if ($order->payment_reference)
+                    <span class="text-cocoa-500">Ref: {{ $order->payment_reference }}</span>
+                @endif
+            </div>
+        @endif
     </div>
 
     <div class="mt-6 text-center">

@@ -31,17 +31,26 @@ class Order extends Model
         self::STATUS_ENTREGADO,
     ];
 
+    /** Estado del pago (RNF-08). */
+    public const PAYMENT_PENDIENTE = 'pendiente';
+    public const PAYMENT_PAGADO    = 'pagado';
+
     protected $fillable = [
         'type',
         'table_number',
         'address',
         'total',
         'status',
+        'payment_status',
+        'payment_method',
+        'payment_reference',
+        'paid_at',
     ];
 
     protected $casts = [
         'total'        => 'decimal:2',
         'table_number' => 'integer',
+        'paid_at'      => 'datetime',
     ];
 
     /** Líneas del pedido. */
@@ -53,6 +62,12 @@ class Order extends Model
     public function isPresencial(): bool
     {
         return $this->type === self::TYPE_PRESENCIAL;
+    }
+
+    /** RNF-08: ¿el pedido ya fue cobrado? */
+    public function isPaid(): bool
+    {
+        return $this->payment_status === self::PAYMENT_PAGADO;
     }
 
     /** Etiqueta legible del estado para las vistas. */

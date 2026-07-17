@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Payments\FakePaymentGateway;
+use App\Services\Payments\PaymentGateway;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -13,7 +15,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // RNF-08: la app depende de la interfaz PaymentGateway; aquí se decide
+        // qué implementación se usa. Para integrar una pasarela real, se cambia
+        // esta línea por el driver real (Wompi/MercadoPago/Stripe) — sin tocar
+        // el flujo del pedido.
+        $this->app->bind(PaymentGateway::class, FakePaymentGateway::class);
     }
 
     /**

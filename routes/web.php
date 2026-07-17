@@ -38,7 +38,15 @@ Route::controller(OrderController::class)->group(function () {
     // El registro de pedidos es público: se limita a 10 por minuto por IP
     // (throttle) para frenar el envío masivo de pedidos falsos.
     Route::post('/pedido', 'store')->middleware('throttle:10,1')->name('orders.store'); // RF-15
-    // 'signed' exige que la URL lleve una firma válida (se genera al confirmar):
+
+    // RNF-08: cobro obligatorio del pedido. Ambas rutas van firmadas (la firma
+    // se genera en el flujo): impide manipular el pago de pedidos ajenos.
+    Route::get('/pedido/{order}/pago', 'showPayment')
+        ->middleware('signed')->name('orders.payment');
+    Route::post('/pedido/{order}/pago', 'processPayment')
+        ->middleware(['signed', 'throttle:10,1'])->name('orders.payment.process');
+
+    // 'signed' exige que la URL lleve una firma válida (se genera tras pagar):
     // impide acceder a la confirmación de otro pedido enumerando su ID.
     Route::get('/pedido/{order}/confirmacion', 'confirmation')
         ->middleware('signed')->name('orders.confirmation');

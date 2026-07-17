@@ -6,10 +6,12 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Models\Dish;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\Payments\PaymentGateway;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -139,20 +141,87 @@ class OrderController extends Controller
             return $order;
         });
 
-        // La confirmación viaja como URL firmada: sin la firma no se puede
-        // acceder, lo que impide enumerar pedidos ajenos por su ID incremental
-        // (evita exponer direcciones de otros clientes).
+        // RNF-08: el pago es obligatorio. Tras registrar el pedido se envía al
+        // cobro (URL firmada, no enumerable). La confirmación sólo se alcanza
+        // después de pagar (ver processPayment).
         return redirect()
-            ->to(URL::signedRoute('orders.confirmation', ['order' => $order]))
-            ->with('status', '¡Pedido registrado! Tu número de pedido es #' . $order->id);
+            ->to(URL::signedRoute('orders.payment', ['order' => $order]))
+            ->with('status', 'Pedido registrado (#' . $order->id . '). Falta completar el pago.');
     }
 
-    /** Pantalla de confirmación tras registrar el pedido (RF-15). */
+    /**
+     * RNF-08: pantalla de cobro del pedido (paso obligatorio). Llega por URL
+     * firmada desde store(). Si ya está pagado, salta a la confirmación.
+     */
+    public function showPayment(Order $order): View|RedirectResponse
+    {
+        if ($order->isPaid()) {
+            return redirect()->to(URL::signedRoute('orders.confirmation', ['order' => $order]));
+        }
+
+        $order->load('items');
+
+        return view('orders.pago', [
+            'order'   => $order,
+            'methods' => $this->paymentMethods(),
+            // La acción del form también va firmada (POST sobre URL firmada).
+            'action'  => URL::signedRoute('orders.payment.process', ['order' => $order]),
+        ]);
+    }
+
+    /**
+     * RNF-08: procesa el cobro a través de la pasarela (simulada). En éxito
+     * marca el pedido como pagado y redirige a la confirmación firmada.
+     */
+    public function processPayment(Request $request, PaymentGateway $gateway, Order $order): RedirectResponse
+    {
+        if ($order->isPaid()) {
+            return redirect()->to(URL::signedRoute('orders.confirmation', ['order' => $order]));
+        }
+
+        $validated = $request->validate([
+            'payment_method' => ['required', Rule::in(array_keys($this->paymentMethods()))],
+        ]);
+
+        $result = $gateway->charge($order, $validated['payment_method']);
+
+        if (! $result->successful) {
+            return back()->withErrors(['payment_method' => $result->message ?? 'El pago fue rechazado. Intenta de nuevo.']);
+        }
+
+        $order->update([
+            'payment_status'    => Order::PAYMENT_PAGADO,
+            'payment_method'    => $validated['payment_method'],
+            'payment_reference' => $result->reference,
+            'paid_at'           => now(),
+        ]);
+
+        return redirect()
+            ->to(URL::signedRoute('orders.confirmation', ['order' => $order]))
+            ->with('status', '¡Pago aprobado! Tu pedido #' . $order->id . ' está confirmado.');
+    }
+
+    /** Pantalla de confirmación tras registrar y pagar el pedido (RF-15 / RNF-08). */
     public function confirmation(Order $order): View
     {
         $order->load('items');
 
         return view('orders.confirmation', compact('order'));
+    }
+
+    /**
+     * Métodos de pago ofrecidos (clave => etiqueta). La pasarela simulada los
+     * acepta todos; una real podría restringirlos.
+     *
+     * @return array<string, string>
+     */
+    private function paymentMethods(): array
+    {
+        return [
+            'tarjeta'       => 'Tarjeta débito/crédito',
+            'efectivo'      => 'Efectivo',
+            'transferencia' => 'Transferencia / QR bancario',
+        ];
     }
 
     /**
