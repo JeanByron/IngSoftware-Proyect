@@ -7,21 +7,28 @@
 
     <title>{{ $title ?? config('app.name', 'MesaQR') }}</title>
 
-    {{-- Sin fuentes de CDN externo: Tailwind cae a la pila de fuentes del sistema
-         (ver tailwind.config.js). Evita cargar recursos de terceros sin control
-         de integridad (SRI) y permite que la app funcione sin conexión. --}}
+    {{-- Favicon del comercio (RNF-24: identidad configurable) --}}
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
+
+    {{-- Sin fuentes de CDN externo: Figtree y Fraunces se sirven self-hosted
+         vía @fontsource (empaquetadas por Vite). Evita cargar recursos de
+         terceros sin control de integridad (SRI). --}}
 
     <!-- Scripts y estilos (Tailwind + Alpine compilados por Vite) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans text-gray-900 antialiased bg-gray-100 min-h-screen">
-    <header class="bg-white border-b border-gray-200">
+<body class="font-sans text-cocoa-950 antialiased bg-cream-100 min-h-screen">
+    <header class="bg-white shadow-sm border-b border-cream-200">
         <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="{{ route('orders.create') }}" class="text-xl font-semibold text-gray-800">
-                🍽️ {{ config('app.name', 'MesaQR') }}
+            <a href="{{ route('orders.create') }}"
+               class="flex items-center gap-3 rounded-lg font-display text-2xl tracking-tight text-cocoa-900
+                      transition duration-150 hover:text-caramel-700
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">
+                <img src="{{ asset(config('comercio.logo')) }}" alt="" class="h-12 w-auto">
+                {{ config('comercio.nombre') }}
             </a>
             @isset($badge)
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                <span class="badge-brand">
                     {{ $badge }}
                 </span>
             @endisset
@@ -31,7 +38,7 @@
     <main class="max-w-3xl mx-auto px-4 py-6">
         {{-- Mensaje de estado (p. ej. tras confirmar) --}}
         @if (session('status'))
-            <div class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700 border border-green-200">
+            <div class="mb-4 rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200">
                 {{ session('status') }}
             </div>
         @endif
@@ -39,22 +46,22 @@
         {{ $slot }}
     </main>
 
-    <footer class="max-w-3xl mx-auto px-4 py-8 text-center text-xs text-gray-400">
+    <footer class="max-w-3xl mx-auto px-4 py-8 text-center text-xs text-cocoa-500">
         {{-- RNF-05: enlaces a redes sociales del comercio (sólo si están configurados en .env) --}}
         @php($redes = array_filter(config('comercio.redes', [])))
         @if (! empty($redes))
             <div class="mb-3 flex items-center justify-center gap-4">
                 @isset($redes['instagram'])
                     <a href="{{ $redes['instagram'] }}" target="_blank" rel="noopener noreferrer"
-                       class="text-gray-500 hover:text-indigo-600">Instagram</a>
+                       class="rounded text-cocoa-600 hover:text-caramel-600 transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">Instagram</a>
                 @endisset
                 @isset($redes['facebook'])
                     <a href="{{ $redes['facebook'] }}" target="_blank" rel="noopener noreferrer"
-                       class="text-gray-500 hover:text-indigo-600">Facebook</a>
+                       class="rounded text-cocoa-600 hover:text-caramel-600 transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">Facebook</a>
                 @endisset
                 @isset($redes['tiktok'])
                     <a href="{{ $redes['tiktok'] }}" target="_blank" rel="noopener noreferrer"
-                       class="text-gray-500 hover:text-indigo-600">TikTok</a>
+                       class="rounded text-cocoa-600 hover:text-caramel-600 transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">TikTok</a>
                 @endisset
             </div>
         @endif

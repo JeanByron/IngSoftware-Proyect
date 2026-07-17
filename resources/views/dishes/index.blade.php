@@ -1,11 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-display font-semibold text-xl text-cocoa-900 tracking-tight leading-tight">
                 {{ __('Gestión de Menú') }}
             </h2>
-            <a href="{{ route('dishes.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+            <a href="{{ route('dishes.create') }}" class="btn-brand">
                 + Nuevo plato
             </a>
         </div>
@@ -20,52 +19,52 @@
                 </div>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+            <div class="card-brand overflow-hidden">
+                <div class="text-cocoa-900">
                     @if ($dishes->isEmpty())
-                        <p class="text-gray-500">Aún no hay platos. Crea el primero con “Nuevo plato”.</p>
+                        <p class="p-6 text-cocoa-600">Aún no hay platos. Crea el primero con “Nuevo plato”.</p>
                     @else
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead>
-                                    <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <th class="px-4 py-3">Plato</th>
-                                        <th class="px-4 py-3">Precio</th>
-                                        <th class="px-4 py-3">Disponibilidad</th>
-                                        <th class="px-4 py-3 text-right">Acciones</th>
+                            <table class="min-w-full divide-y divide-cream-200">
+                                <thead class="bg-cream-100">
+                                    <tr class="text-left text-xs font-semibold text-cocoa-700 uppercase tracking-wider">
+                                        <th class="px-6 py-3">Plato</th>
+                                        <th class="px-6 py-3">Precio</th>
+                                        <th class="px-6 py-3">Disponibilidad</th>
+                                        <th class="px-6 py-3 text-right">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-100">
+                                <tbody class="divide-y divide-cream-200">
                                     @foreach ($dishes as $dish)
-                                        <tr>
-                                            <td class="px-4 py-3">
-                                                <div class="font-medium text-gray-900">{{ $dish->name }}</div>
+                                        <tr class="hover:bg-cream-50 transition duration-150">
+                                            <td class="px-6 py-3">
+                                                <div class="font-medium text-cocoa-900">{{ $dish->name }}</div>
                                                 @if ($dish->description)
-                                                    <div class="text-sm text-gray-500">{{ \Illuminate\Support\Str::limit($dish->description, 60) }}</div>
+                                                    <div class="text-sm text-cocoa-600">{{ \Illuminate\Support\Str::limit($dish->description, 60) }}</div>
                                                 @endif
                                             </td>
-                                            <td class="px-4 py-3 whitespace-nowrap">${{ number_format($dish->price, 0, ',', '.') }}</td>
-                                            <td class="px-4 py-3">
+                                            <td class="px-6 py-3 whitespace-nowrap font-display text-cocoa-900 tracking-tight">${{ number_format($dish->price, 0, ',', '.') }}</td>
+                                            <td class="px-6 py-3">
                                                 {{-- RF-04: alternar disponibilidad --}}
                                                 <form method="POST" action="{{ route('dishes.toggle', $dish) }}">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button type="submit"
-                                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                                {{ $dish->is_available ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600' }}">
+                                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition duration-150 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400
+                                                                {{ $dish->is_available ? 'bg-green-100 text-green-800 hover:bg-green-50' : 'bg-cocoa-100 text-cocoa-600 hover:bg-cocoa-50' }}">
                                                         {{ $dish->is_available ? 'Disponible' : 'No disponible' }}
                                                     </button>
                                                 </form>
                                             </td>
-                                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                            <td class="px-6 py-3 text-right whitespace-nowrap">
                                                 <a href="{{ route('dishes.edit', $dish) }}"
-                                                   class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Editar</a>
+                                                   class="text-caramel-700 hover:text-caramel-600 hover:underline text-sm font-medium rounded transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">Editar</a>
                                                 {{-- RF-03: eliminar --}}
                                                 <form method="POST" action="{{ route('dishes.destroy', $dish) }}" class="inline ms-3"
                                                       onsubmit="return confirm('¿Eliminar este plato?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900 text-sm font-medium">Eliminar</button>
+                                                    <button type="submit" class="text-red-700 hover:text-red-600 hover:underline text-sm font-medium rounded transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">Eliminar</button>
                                                 </form>
                                             </td>
                                         </tr>
@@ -74,7 +73,7 @@
                             </table>
                         </div>
 
-                        <div class="mt-4">
+                        <div class="px-6 py-4 border-t border-cream-200">
                             {{ $dishes->links() }}
                         </div>
                     @endif

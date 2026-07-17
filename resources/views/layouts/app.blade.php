@@ -7,18 +7,21 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        {{-- Sin fuentes de CDN externo: Tailwind cae a la pila de fuentes del sistema. --}}
+        {{-- Identidad del comercio (RNF-24): favicon desde el logo. --}}
+        <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
+
+        {{-- Fuentes self-hosted vía @fontsource (empaquetadas por Vite, sin CDN externo). --}}
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-cream-50">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-white shadow">
+                <header class="bg-white shadow-sm">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

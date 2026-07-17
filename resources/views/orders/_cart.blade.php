@@ -26,29 +26,29 @@
 
     {{-- Lista de platos disponibles --}}
     <section>
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">Carta disponible</h3>
+        <h3 class="font-display text-lg font-semibold tracking-tight text-cocoa-900 mb-3">Carta disponible</h3>
 
         @if ($dishes->isEmpty())
-            <p class="text-gray-500 bg-white rounded-lg p-4 shadow-sm">
+            <p class="text-cocoa-600 card-brand p-4">
                 No hay platos disponibles en este momento.
             </p>
         @else
             <div class="grid gap-3 sm:grid-cols-2">
                 @foreach ($dishes as $dish)
-                    <div class="bg-white rounded-lg shadow-sm p-4 flex flex-col justify-between">
+                    <div class="card-brand p-4 flex flex-col justify-between transition duration-150 hover:shadow-md hover:border-caramel-300">
                         <div>
-                            <div class="font-medium text-gray-900">{{ $dish->name }}</div>
+                            <div class="font-semibold text-cocoa-900">{{ $dish->name }}</div>
                             @if ($dish->description)
-                                <p class="text-sm text-gray-500 mt-1">{{ $dish->description }}</p>
+                                <p class="text-sm text-cocoa-600 mt-1">{{ $dish->description }}</p>
                             @endif
                         </div>
                         <div class="mt-3 flex items-center justify-between">
-                            <span class="font-semibold text-gray-800">${{ number_format($dish->price, 0, ',', '.') }}</span>
+                            <span class="font-display text-lg text-caramel-700">${{ number_format($dish->price, 0, ',', '.') }}</span>
                             {{-- RF-09 / RF-11 --}}
                             {{-- RNF-12: control táctil de al menos 44x44px --}}
                             <button type="button"
                                     @click="addToCart({{ $dish->id }})"
-                                    class="min-h-[44px] px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">
+                                    class="btn-accent min-h-[44px]">
                                 Agregar
                             </button>
                         </div>
@@ -59,31 +59,31 @@
     </section>
 
     {{-- Carrito --}}
-    <section class="bg-white rounded-lg shadow-sm p-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">Tu pedido</h3>
+    <section class="card-brand p-4">
+        <h3 class="font-display text-lg font-semibold tracking-tight text-cocoa-900 mb-3">Tu pedido</h3>
 
         <template x-if="items.length === 0">
-            <p class="text-gray-500 text-sm">El carrito está vacío. Agrega platos de la carta.</p>
+            <p class="text-cocoa-500 text-sm">El carrito está vacío. Agrega platos de la carta.</p>
         </template>
 
-        <ul class="divide-y divide-gray-100" x-show="items.length > 0">
+        <ul class="divide-y divide-cream-200" x-show="items.length > 0">
             <template x-for="item in items" :key="item.id">
                 <li class="py-3 flex items-center justify-between gap-3">
                     <div class="flex-1">
-                        <div class="font-medium text-gray-900" x-text="item.name"></div>
-                        <div class="text-sm text-gray-500">
+                        <div class="font-medium text-cocoa-900" x-text="item.name"></div>
+                        <div class="text-sm text-cocoa-500">
                             $<span x-text="formatMoney(item.price)"></span> c/u
                         </div>
                     </div>
                     {{-- RF-13: modificar cantidad · RNF-12: botones táctiles de 44x44px --}}
                     <div class="flex items-center gap-2">
                         <button type="button" @click="decrement(item.id)"
-                                class="w-11 h-11 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 text-lg">−</button>
+                                class="w-11 h-11 rounded-full bg-cream-200 text-cocoa-800 text-lg transition duration-150 hover:bg-caramel-200 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">−</button>
                         <span class="w-6 text-center" x-text="item.quantity"></span>
                         <button type="button" @click="increment(item.id)"
-                                class="w-11 h-11 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 text-lg">+</button>
+                                class="w-11 h-11 rounded-full bg-cream-200 text-cocoa-800 text-lg transition duration-150 hover:bg-caramel-200 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">+</button>
                     </div>
-                    <div class="w-20 text-right font-medium text-gray-800">
+                    <div class="w-20 text-right font-medium text-cocoa-800">
                         $<span x-text="formatMoney(item.price * item.quantity)"></span>
                     </div>
                 </li>
@@ -91,9 +91,9 @@
         </ul>
 
         {{-- RF-14: total --}}
-        <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-            <span class="text-base font-semibold text-gray-800">Total</span>
-            <span class="text-xl font-bold text-gray-900">$<span x-text="formatMoney(total)"></span></span>
+        <div class="mt-4 pt-4 border-t border-cream-200 flex items-center justify-between">
+            <span class="text-base font-semibold text-cocoa-900">Total</span>
+            <span class="font-display text-xl font-bold text-cocoa-900">$<span x-text="formatMoney(total)"></span></span>
         </div>
     </section>
 
@@ -107,13 +107,13 @@
             <input type="hidden" name="table_number" value="{{ $tableNumber }}">
         @else
             {{-- RF-12: dirección obligatoria en domicilio --}}
-            <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
-                <label for="address" class="block text-sm font-medium text-gray-700 mb-1">
+            <div class="card-brand p-4 mb-4">
+                <label for="address" class="block text-sm font-medium text-cocoa-700 mb-1">
                     Dirección de entrega
                 </label>
                 <input type="text" id="address" name="address" value="{{ old('address') }}"
                        placeholder="Calle, número, barrio, referencia…"
-                       class="block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                       class="block w-full border-cocoa-200 rounded-lg shadow-sm transition duration-150 focus:border-caramel-500 focus:ring-caramel-400">
                 @error('address')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -135,9 +135,7 @@
         {{-- RF-16: botón deshabilitado si el carrito está vacío --}}
         <button type="submit"
                 :disabled="items.length === 0"
-                class="w-full py-3 rounded-md text-white font-semibold transition
-                       disabled:opacity-40 disabled:cursor-not-allowed
-                       bg-green-600 hover:bg-green-700">
+                class="btn-accent w-full py-3 text-base">
             Confirmar pedido
         </button>
     </form>

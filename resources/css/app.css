@@ -1,3 +1,60 @@
+/* Fuentes self-hosted (@fontsource, empaquetadas por Vite — sin CDN externo). */
+@import '@fontsource-variable/figtree';
+@import '@fontsource-variable/fraunces';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+|-----------------------------------------------------------------------------
+| Capa de componentes de marca (Balcoa's Café / MesaQR)
+|-----------------------------------------------------------------------------
+| Recetas reutilizables para futuras vistas: usar estas clases en lugar de
+| repetir utilidades. Paleta y criterios completos en GuiaEstilo.md (raíz).
+*/
+@layer components {
+    /* Botón primario: chocolate. Acciones principales del panel. */
+    .btn-brand {
+        @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+               bg-cocoa-800 text-cream-50 text-sm font-semibold tracking-wide
+               shadow-sm transition duration-150
+               hover:bg-cocoa-700 hover:shadow-md
+               focus-visible:outline-none focus-visible:ring-2
+               focus-visible:ring-caramel-400 focus-visible:ring-offset-2
+               active:scale-[0.98];
+    }
+
+    /* Botón de acento: caramelo. CTA del cliente (pedir, confirmar). */
+    .btn-accent {
+        @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+               bg-caramel-600 text-white text-sm font-semibold tracking-wide
+               shadow-sm transition duration-150
+               hover:bg-caramel-500 hover:shadow-md
+               focus-visible:outline-none focus-visible:ring-2
+               focus-visible:ring-caramel-400 focus-visible:ring-offset-2
+               active:scale-[0.98]
+               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-caramel-600 disabled:hover:shadow-sm;
+    }
+
+    /* Botón secundario/fantasma: borde suave, fondo crema al pasar el ratón. */
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+               bg-white text-cocoa-800 text-sm font-semibold
+               border border-cocoa-200 shadow-sm transition duration-150
+               hover:bg-cream-100 hover:border-cocoa-300
+               focus-visible:outline-none focus-visible:ring-2
+               focus-visible:ring-caramel-400 focus-visible:ring-offset-2;
+    }
+
+    /* Tarjeta estándar: superficie blanca sobre fondo crema. */
+    .card-brand {
+        @apply bg-white rounded-xl border border-cream-200 shadow-sm;
+    }
+
+    /* Insignia (badge) de marca: mesa, estados, contadores. */
+    .badge-brand {
+        @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+               bg-caramel-100 text-caramel-800;
+    }
+}

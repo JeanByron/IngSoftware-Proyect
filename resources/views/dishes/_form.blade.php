@@ -17,7 +17,7 @@
     <div>
         <x-input-label for="description" :value="__('Descripción')" />
         <textarea id="description" name="description" rows="3"
-                  class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('description', $dish->description ?? '') }}</textarea>
+                  class="mt-1 block w-full border-cocoa-200 focus:border-caramel-400 focus:ring-caramel-400 rounded-lg shadow-sm transition duration-150">{{ old('description', $dish->description ?? '') }}</textarea>
         <x-input-error :messages="$errors->get('description')" class="mt-2" />
     </div>
 
@@ -33,15 +33,15 @@
     <div>
         <label for="is_available" class="inline-flex items-center">
             <input type="checkbox" id="is_available" name="is_available" value="1"
-                   class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                   class="rounded border-cocoa-300 text-caramel-600 shadow-sm focus:ring-caramel-400 transition duration-150"
                    {{ old('is_available', $dish->is_available ?? true) ? 'checked' : '' }}>
-            <span class="ms-2 text-sm text-gray-600">{{ __('Disponible para los clientes') }}</span>
+            <span class="ms-2 text-sm text-cocoa-700">{{ __('Disponible para los clientes') }}</span>
         </label>
         <x-input-error :messages="$errors->get('is_available')" class="mt-2" />
     </div>
 
     <div class="flex items-center gap-4">
-        <x-primary-button>{{ __('Guardar') }}</x-primary-button>
-        <a href="{{ route('dishes.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Cancelar</a>
+        <button type="submit" class="btn-brand">{{ __('Guardar') }}</button>
+        <a href="{{ route('dishes.index') }}" class="btn-ghost">Cancelar</a>
     </div>
 </div>

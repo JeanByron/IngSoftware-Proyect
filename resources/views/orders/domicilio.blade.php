@@ -4,8 +4,8 @@
     <x-slot name="badge">A domicilio</x-slot>
 
     <div class="mb-4">
-        <h2 class="text-2xl font-bold text-gray-800">Pedido a domicilio</h2>
-        <p class="text-gray-600">Elige tus platos, indica tu dirección y confirma. Te lo llevamos.</p>
+        <h2 class="font-display text-2xl font-bold tracking-tight text-cocoa-900">Pedido a domicilio</h2>
+        <p class="text-cocoa-600">Elige tus platos, indica tu dirección y confirma. Te lo llevamos.</p>
     </div>
 
     @include('orders._cart', ['type' => 'domicilio', 'dishes' => $dishes])
