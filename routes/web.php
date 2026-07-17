@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ComandaController;
 use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\MetricsController;
 use App\Http\Controllers\Admin\OrderPanelController;
@@ -72,6 +73,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pedidos/{order}', 'show')->name('show');
         Route::patch('/pedidos/{order}/estado', 'updateStatus')->name('update-status'); // RF-20
     });
+
+    // RNF-07: comanda/ticket de cocina en texto plano. Módulo activable
+    // (MODULE_COMANDA): si se apaga, la ruta no se registra -> 404.
+    if (config('modules.comanda')) {
+        Route::get('/panel/pedidos/{order}/comanda', ComandaController::class)
+            ->name('admin.orders.comanda');
+    }
 
     // RNF-06: QR imprimible por mesa (codifica /pedido?mesa=N).
     Route::get('/panel/mesas/{mesa}/qr', [TableQrController::class, 'show'])

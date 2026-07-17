@@ -4,7 +4,14 @@
             <h2 class="font-display font-semibold text-xl text-cocoa-900 tracking-tight leading-tight">
                 {{ __('Pedido') }} #{{ $order->id }}
             </h2>
-            <a href="{{ route('admin.orders.index') }}" class="btn-ghost">← Volver</a>
+            <div class="flex items-center gap-3">
+                {{-- RNF-07: comanda de cocina (módulo activable MODULE_COMANDA). --}}
+                @if (config('modules.comanda'))
+                    <a href="{{ route('admin.orders.comanda', $order) }}" target="_blank" rel="noopener"
+                       class="btn-ghost">🧾 Comanda</a>
+                @endif
+                <a href="{{ route('admin.orders.index') }}" class="btn-ghost">← Volver</a>
+            </div>
         </div>
     </x-slot>
 
