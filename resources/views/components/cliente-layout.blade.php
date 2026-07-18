@@ -48,9 +48,14 @@
 
     <footer class="max-w-3xl mx-auto px-4 py-8 text-center text-xs text-cocoa-500">
         {{-- RNF-05: enlaces a redes sociales del comercio (sólo si están configurados en .env).
-             RNF-10: además, el módulo de redes debe estar activo. --}}
-        @php($redes = array_filter(config('comercio.redes', [])))
-        @if (config('modules.redes') && ! empty($redes))
+             RNF-10: además, el módulo de redes debe estar activo.
+             RNF-13: la lectura va dentro de Module::safe — si la config de redes
+             estuviera mal formada, el footer se degrada (sin enlaces) pero la
+             página del cliente (flujo básico) NO se cae. --}}
+        @php($redes = \App\Support\Module::enabled('redes')
+                ? \App\Support\Module::safe(fn () => array_filter(config('comercio.redes', [])), [], 'redes (footer)')
+                : [])
+        @if (! empty($redes))
             <div class="mb-3 flex items-center justify-center gap-4">
                 @isset($redes['instagram'])
                     <a href="{{ $redes['instagram'] }}" target="_blank" rel="noopener noreferrer"
