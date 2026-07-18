@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -42,21 +43,43 @@ class OrderPanelController extends Controller
         ]);
     }
 
-    /** Detalle de un pedido con sus líneas. */
+    /** Detalle de un pedido con sus líneas y su bitácora de estados (RNF-20). */
     public function show(Order $order): View
     {
-        $order->load('items');
+        $order->load(['items', 'statusLogs.user']);
 
         return view('admin.orders.show', [
-            'order'    => $order,
-            'statuses' => Order::STATUSES,
+            'order'       => $order,
+            // Sólo se ofrecen los estados a los que se puede AVANZAR.
+            'allowedNext' => $order->allowedNextStatuses(),
         ]);
     }
 
-    /** RF-20: actualizar el estado de un pedido desde el panel. */
+    /**
+     * RF-20: actualizar el estado de un pedido desde el panel.
+     * Máquina de estados: sólo avanza (sin retrocesos). RNF-20: cada cambio
+     * queda registrado en la bitácora (quién, cuándo, de qué estado a cuál).
+     */
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
     {
-        $order->update(['status' => $request->validated()['status']]);
+        $to = $request->validated()['status'];
+
+        if (! $order->canTransitionTo($to)) {
+            return back()->withErrors([
+                'status' => "No se puede pasar de “{$order->statusLabel()}” a ese estado (sólo se avanza en el flujo).",
+            ]);
+        }
+
+        $from = $order->status;
+
+        DB::transaction(function () use ($order, $request, $from, $to) {
+            $order->update(['status' => $to]);
+            $order->statusLogs()->create([
+                'user_id'     => $request->user()?->id,   // RNF-20: quién
+                'from_status' => $from,
+                'to_status'   => $to,
+            ]);
+        });
 
         return back()->with('status', "Pedido #{$order->id} actualizado a “{$order->statusLabel()}”.");
     }

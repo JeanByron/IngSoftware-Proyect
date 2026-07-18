@@ -61,21 +61,58 @@
                 </ul>
             </div>
 
-            {{-- RF-20: cambiar estado --}}
+            {{-- RF-20 / RNF-20: estado con máquina de estados (sólo avanza) --}}
             <div class="card-brand p-6">
                 <h3 class="font-display font-semibold text-cocoa-900 tracking-tight mb-3">Estado del pedido</h3>
-                <form method="POST" action="{{ route('admin.orders.update-status', $order) }}" class="flex items-center gap-3">
-                    @csrf
-                    @method('PATCH')
-                    <select name="status" class="border-cocoa-200 rounded-lg shadow-sm transition duration-150 hover:border-cocoa-300 focus:border-caramel-400 focus:ring-caramel-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">
-                        @foreach ($statuses as $status)
-                            <option value="{{ $status }}" @selected($order->status === $status)>
-                                {{ ucfirst(str_replace('_', ' ', $status)) }}
-                            </option>
+
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-sm text-cocoa-600">Actual:</span>
+                    <span class="badge-brand">{{ $order->statusLabel() }}</span>
+                </div>
+
+                @error('status')
+                    <p class="mb-3 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+
+                @if (! empty($allowedNext))
+                    <form method="POST" action="{{ route('admin.orders.update-status', $order) }}" class="flex items-center gap-3">
+                        @csrf
+                        @method('PATCH')
+                        <select name="status" class="border-cocoa-200 rounded-lg shadow-sm transition duration-150 hover:border-cocoa-300 focus:border-caramel-400 focus:ring-caramel-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-400">
+                            @foreach ($allowedNext as $status)
+                                <option value="{{ $status }}">{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn-brand">Avanzar estado</button>
+                    </form>
+                    <p class="mt-2 text-xs text-cocoa-500">El flujo sólo avanza; no se puede retroceder.</p>
+                @else
+                    <p class="text-sm text-cocoa-600">Flujo completado: el pedido fue entregado.</p>
+                @endif
+            </div>
+
+            {{-- RNF-20: bitácora de auditoría de los cambios de estado --}}
+            <div class="card-brand p-6">
+                <h3 class="font-display font-semibold text-cocoa-900 tracking-tight mb-3">Historial de cambios</h3>
+                @if ($order->statusLogs->isEmpty())
+                    <p class="text-sm text-cocoa-500">Sin cambios de estado registrados todavía.</p>
+                @else
+                    <ol class="space-y-3">
+                        @foreach ($order->statusLogs as $log)
+                            <li class="flex items-start gap-3 text-sm">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-caramel-500 shrink-0" aria-hidden="true"></span>
+                                <div>
+                                    <div class="text-cocoa-900">
+                                        {{ $log->from_status ? ucfirst(str_replace('_', ' ', $log->from_status)) . ' → ' : '' }}<span class="font-medium">{{ ucfirst(str_replace('_', ' ', $log->to_status)) }}</span>
+                                    </div>
+                                    <div class="text-xs text-cocoa-500">
+                                        {{ $log->created_at?->format('d/m/Y H:i') }} · {{ $log->user?->name ?? 'sistema' }}
+                                    </div>
+                                </div>
+                            </li>
                         @endforeach
-                    </select>
-                    <button type="submit" class="btn-brand">Actualizar estado</button>
-                </form>
+                    </ol>
+                @endif
             </div>
         </div>
     </div>

@@ -59,6 +59,37 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    /** RNF-20: bitácora de cambios de estado (más reciente primero). */
+    public function statusLogs(): HasMany
+    {
+        return $this->hasMany(OrderStatusLog::class)->latest();
+    }
+
+    /**
+     * Máquina de estados (RF-20 / riesgo de retrocesos): sólo se avanza en el
+     * flujo recibido → en_preparacion → listo → entregado. No se retrocede ni
+     * se queda igual; sí se permite saltar hacia adelante.
+     */
+    public function canTransitionTo(string $to): bool
+    {
+        $from   = array_search($this->status, self::STATUSES, true);
+        $target = array_search($to, self::STATUSES, true);
+
+        return $from !== false && $target !== false && $target > $from;
+    }
+
+    /**
+     * Estados a los que este pedido puede avanzar (los posteriores al actual).
+     *
+     * @return array<int, string>
+     */
+    public function allowedNextStatuses(): array
+    {
+        $from = array_search($this->status, self::STATUSES, true);
+
+        return $from === false ? [] : array_slice(self::STATUSES, $from + 1);
+    }
+
     public function isPresencial(): bool
     {
         return $this->type === self::TYPE_PRESENCIAL;
