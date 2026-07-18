@@ -35,6 +35,24 @@ class OrderFlowTest extends TestCase
         $response->assertSee('Dirección de entrega');
     }
 
+    /**
+     * RNF-15: el carrito se persiste en localStorage con clave por contexto,
+     * para sobrevivir a recargas. (Comprobación de que el cableado se emite; el
+     * comportamiento en el navegador se valida manualmente.)
+     */
+    public function test_cart_persistence_is_wired_per_context(): void
+    {
+        // Presencial: la clave incluye el número de mesa.
+        $this->get(route('orders.create', ['mesa' => 8]))
+            ->assertSee('localStorage', false)
+            ->assertSee("'mesaqr.cart.'", false)
+            ->assertSee('tableNumber: 8', false);
+
+        // Domicilio: sin mesa (clave termina en 'domicilio').
+        $this->get(route('orders.create'))
+            ->assertSee('tableNumber: null', false);
+    }
+
     /** RF-06: una mesa inválida (0, negativa, no numérica) degrada a domicilio. */
     public function test_invalid_table_param_falls_back_to_domicilio(): void
     {

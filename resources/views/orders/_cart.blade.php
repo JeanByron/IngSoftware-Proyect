@@ -20,7 +20,8 @@
             'name'  => $d->name,
             'price' => (float) $d->price,
         ])) }},
-        type: @js($type)
+        type: @js($type),
+        tableNumber: @js($tableNumber ?? null)
      })"
      class="space-y-6">
 
@@ -149,12 +150,19 @@
 </div>
 
 <script>
-    // Componente Alpine del carrito. RF-09/11/13/14/16.
+    // Componente Alpine del carrito. RF-09/11/13/14/16 · RNF-15 (persistencia).
     function cart(config) {
         return {
             dishes: config.dishes,
             type: config.type,
+            tableNumber: config.tableNumber ?? null,
             items: [],
+
+            // RNF-15: al montar, se recupera el carrito guardado (sobrevive a
+            // recargas de página). Alpine llama init() automáticamente.
+            init() {
+                this.load();
+            },
 
             get total() {
                 // RF-14: total reactivo
@@ -165,17 +173,19 @@
                 const existing = this.items.find(i => i.id === dishId);
                 if (existing) {
                     existing.quantity++;
-                    return;
+                } else {
+                    const dish = this.dishes.find(d => d.id === dishId);
+                    if (dish) {
+                        this.items.push({ id: dish.id, name: dish.name, price: dish.price, quantity: 1 });
+                    }
                 }
-                const dish = this.dishes.find(d => d.id === dishId);
-                if (dish) {
-                    this.items.push({ id: dish.id, name: dish.name, price: dish.price, quantity: 1 });
-                }
+                this.persist();
             },
 
             increment(dishId) {
                 const item = this.items.find(i => i.id === dishId);
                 if (item) item.quantity++;
+                this.persist();
             },
 
             decrement(dishId) {
@@ -185,6 +195,7 @@
                 if (item.quantity <= 0) {
                     this.items = this.items.filter(i => i.id !== dishId);
                 }
+                this.persist();
             },
 
             syncItems(e) {
@@ -192,11 +203,55 @@
                 if (this.items.length === 0) {
                     e.preventDefault();
                     alert('Tu carrito está vacío.');
+                    return;
                 }
+                // El pedido se envía: se limpia el carrito guardado para no
+                // arrastrarlo al volver a la carta (RNF-15).
+                this.clearStorage();
             },
 
             formatMoney(value) {
                 return new Intl.NumberFormat('es-CO').format(value);
+            },
+
+            // --- Persistencia en localStorage (RNF-15) ---
+            // Clave por contexto: el carrito de la mesa 5 no se mezcla con el de
+            // domicilio ni con otra mesa.
+            storageKey() {
+                return 'mesaqr.cart.' + this.type + '.' + (this.tableNumber ?? 'domicilio');
+            },
+
+            load() {
+                try {
+                    const raw = window.localStorage.getItem(this.storageKey());
+                    if (!raw) return;
+                    const saved = JSON.parse(raw);
+                    if (!Array.isArray(saved)) return;
+                    // Sólo se conservan platos que siguen en la carta disponible;
+                    // se refresca nombre/precio desde los datos actuales.
+                    this.items = saved
+                        .map(s => {
+                            const dish = this.dishes.find(d => d.id === s.id);
+                            return dish ? { id: dish.id, name: dish.name, price: dish.price, quantity: s.quantity } : null;
+                        })
+                        .filter(Boolean);
+                } catch (e) {
+                    // localStorage no disponible o dato corrupto: se ignora.
+                }
+            },
+
+            persist() {
+                try {
+                    window.localStorage.setItem(this.storageKey(), JSON.stringify(this.items));
+                } catch (e) {
+                    // Modo privado / sin espacio: se ignora (el carrito sigue en memoria).
+                }
+            },
+
+            clearStorage() {
+                try {
+                    window.localStorage.removeItem(this.storageKey());
+                } catch (e) {}
             },
         };
     }
