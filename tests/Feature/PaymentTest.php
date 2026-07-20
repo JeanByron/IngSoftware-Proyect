@@ -6,6 +6,7 @@ use App\Models\Dish;
 use App\Models\Order;
 use App\Services\Payments\FakePaymentGateway;
 use App\Services\Payments\PaymentGateway;
+use App\Services\Payments\PaymentResult;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
@@ -90,5 +91,54 @@ class PaymentTest extends TestCase
 
         $this->get(URL::signedRoute('orders.payment', ['order' => $order]))
             ->assertRedirectToSignedRoute('orders.confirmation', ['order' => $order]);
+    }
+
+    /**
+     * RNF-08 (sustentación de "estructura lista para pasarela real"): si se
+     * enchufa OTRA implementación de PaymentGateway, el flujo la usa sin tocar
+     * el controlador. Aquí un driver alterno aprueba con una referencia propia.
+     */
+    public function test_flow_uses_whatever_gateway_is_bound(): void
+    {
+        $this->app->bind(PaymentGateway::class, fn () => new class implements PaymentGateway {
+            public function charge(Order $order, string $method): PaymentResult
+            {
+                return PaymentResult::approved('ALT-REF-999');
+            }
+        });
+
+        $order = Order::factory()->create(['payment_status' => Order::PAYMENT_PENDIENTE]);
+
+        $this->post(URL::signedRoute('orders.payment.process', ['order' => $order]), [
+            'payment_method' => 'tarjeta',
+        ])->assertRedirectToSignedRoute('orders.confirmation', ['order' => $order]);
+
+        $order->refresh();
+        $this->assertTrue($order->isPaid());
+        $this->assertSame('ALT-REF-999', $order->payment_reference); // referencia del driver alterno
+    }
+
+    /**
+     * RNF-08: una pasarela real puede RECHAZAR el cobro. El flujo maneja el
+     * rechazo: vuelve con error y el pedido queda SIN pagar.
+     */
+    public function test_declined_payment_keeps_the_order_unpaid(): void
+    {
+        $this->app->bind(PaymentGateway::class, fn () => new class implements PaymentGateway {
+            public function charge(Order $order, string $method): PaymentResult
+            {
+                return PaymentResult::declined('Fondos insuficientes.');
+            }
+        });
+
+        $order = Order::factory()->create(['payment_status' => Order::PAYMENT_PENDIENTE]);
+
+        $this->post(URL::signedRoute('orders.payment.process', ['order' => $order]), [
+            'payment_method' => 'tarjeta',
+        ])->assertSessionHasErrors('payment_method');
+
+        $order->refresh();
+        $this->assertFalse($order->isPaid());
+        $this->assertNull($order->paid_at);
     }
 }
