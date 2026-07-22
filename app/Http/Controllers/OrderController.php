@@ -37,6 +37,9 @@ use Illuminate\View\View;
  */
 class OrderController extends Controller
 {
+    /** Método de pago que se cobra en persona (no pasa por la pasarela). */
+    private const PAYMENT_CASH = 'efectivo';
+
     /**
      * RF-06 / RF-10: punto de entrada del cliente.
      * Si la URL contiene ?mesa=N -> vista presencial; si no -> vista domicilio.
@@ -170,8 +173,12 @@ class OrderController extends Controller
     }
 
     /**
-     * RNF-08: procesa el cobro a través de la pasarela (simulada). En éxito
-     * marca el pedido como pagado y redirige a la confirmación firmada.
+     * RNF-08: procesa el paso de pago.
+     *  - Efectivo: el pedido se registra pero el cobro se hace EN PERSONA; no
+     *    pasa por la pasarela ni queda marcado como pagado.
+     *  - Tarjeta/transferencia: se cobra por la pasarela (simulada) y, si
+     *    aprueba, el pedido queda pagado.
+     * En ambos casos se avanza a la confirmación firmada.
      */
     public function processPayment(Request $request, PaymentGateway $gateway, Order $order): RedirectResponse
     {
@@ -182,8 +189,18 @@ class OrderController extends Controller
         $validated = $request->validate([
             'payment_method' => ['required', Rule::in(array_keys($this->paymentMethods()))],
         ]);
+        $method = $validated['payment_method'];
 
-        $result = $gateway->charge($order, $validated['payment_method']);
+        if ($method === self::PAYMENT_CASH) {
+            // Pago en efectivo: se registra el método; el cobro es al entregar.
+            $order->update(['payment_method' => $method]);   // sigue 'pendiente'
+
+            return redirect()
+                ->to(URL::signedRoute('orders.confirmation', ['order' => $order]))
+                ->with('status', '¡Pedido registrado! Pagarás en efectivo al recibirlo.');
+        }
+
+        $result = $gateway->charge($order, $method);
 
         if (! $result->successful) {
             return back()->withErrors(['payment_method' => $result->message ?? 'El pago fue rechazado. Intenta de nuevo.']);
@@ -191,7 +208,7 @@ class OrderController extends Controller
 
         $order->update([
             'payment_status'    => Order::PAYMENT_PAGADO,
-            'payment_method'    => $validated['payment_method'],
+            'payment_method'    => $method,
             'payment_reference' => $result->reference,
             'paid_at'           => now(),
         ]);

@@ -57,6 +57,11 @@
                     <span class="text-cocoa-500">Ref: {{ $order->payment_reference }}</span>
                 @endif
             </div>
+        @elseif ($order->payment_method === 'efectivo')
+            {{-- Efectivo: se cobra en persona, no se muestra como pagado. --}}
+            <div class="mt-3 pt-3 border-t border-cream-200 text-sm text-cocoa-700 font-medium">
+                Pago en efectivo — se cobra al entregar tu pedido.
+            </div>
         @endif
     </div>
 

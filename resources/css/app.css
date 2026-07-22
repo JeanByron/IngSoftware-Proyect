@@ -6,6 +6,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Oculta los elementos con x-cloak hasta que Alpine se inicializa (evita
+   parpadeos de contenido condicionado por Alpine, p. ej. la vista de pago). */
+[x-cloak] { display: none !important; }
+
 /*
 |-----------------------------------------------------------------------------
 | Capa de componentes de marca (Balcoa's Café / MesaQR)

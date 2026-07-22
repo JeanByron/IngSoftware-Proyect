@@ -81,6 +81,45 @@ class PaymentTest extends TestCase
         $this->assertFalse($order->refresh()->isPaid());
     }
 
+    /**
+     * RNF-08: pago en EFECTIVO — el pedido se registra pero NO queda pagado
+     * (el cobro es en persona). Aun así avanza a la confirmación.
+     */
+    public function test_cash_places_order_without_marking_it_paid(): void
+    {
+        $order = Order::factory()->create(['payment_status' => Order::PAYMENT_PENDIENTE]);
+
+        $this->post(URL::signedRoute('orders.payment.process', ['order' => $order]), [
+            'payment_method' => 'efectivo',
+        ])->assertRedirectToSignedRoute('orders.confirmation', ['order' => $order]);
+
+        $order->refresh();
+        $this->assertFalse($order->isPaid());               // NO pagado
+        $this->assertSame('efectivo', $order->payment_method);
+        $this->assertNull($order->paid_at);
+        $this->assertNull($order->payment_reference);
+    }
+
+    /** El pago en efectivo NO pasa por la pasarela (no cobra). */
+    public function test_cash_does_not_call_the_gateway(): void
+    {
+        $this->app->bind(PaymentGateway::class, fn () => new class implements PaymentGateway {
+            public function charge(Order $order, string $method): PaymentResult
+            {
+                throw new \RuntimeException('la pasarela no debe llamarse en efectivo');
+            }
+        });
+
+        $order = Order::factory()->create(['payment_status' => Order::PAYMENT_PENDIENTE]);
+
+        // Si la pasarela se llamara, lanzaría y daría 500; en efectivo se salta.
+        $this->post(URL::signedRoute('orders.payment.process', ['order' => $order]), [
+            'payment_method' => 'efectivo',
+        ])->assertRedirectToSignedRoute('orders.confirmation', ['order' => $order]);
+
+        $this->assertFalse($order->refresh()->isPaid());
+    }
+
     /** Un pedido ya pagado no se vuelve a cobrar: salta a la confirmación. */
     public function test_paid_order_skips_payment(): void
     {
