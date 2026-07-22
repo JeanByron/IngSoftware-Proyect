@@ -39,4 +39,23 @@ class TableQrTest extends TestCase
             ->get(route('admin.tables.qr', ['mesa' => 0]))
             ->assertNotFound();
     }
+
+    /** Navegación entre mesas: enlaces a la anterior y la siguiente. */
+    public function test_navigation_links_between_tables(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('admin.tables.qr', ['mesa' => 5]))
+            ->assertSee(route('admin.tables.qr', ['mesa' => 4]), false)  // ◀ anterior
+            ->assertSee(route('admin.tables.qr', ['mesa' => 6]), false); // siguiente ▶
+    }
+
+    /** En la mesa 1 no hay enlace a la mesa 0 (anterior deshabilitado). */
+    public function test_first_table_has_no_previous_link(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('admin.tables.qr', ['mesa' => 1]))
+            ->assertOk()
+            ->assertDontSee(route('admin.tables.qr', ['mesa' => 0]), false)
+            ->assertSee(route('admin.tables.qr', ['mesa' => 2]), false); // sí a la siguiente
+    }
 }
