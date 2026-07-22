@@ -26,6 +26,24 @@ class DishManagementTest extends TestCase
         return User::factory()->create();
     }
 
+    /**
+     * Genera un PNG REAL con las dimensiones dadas (sin depender de ext-gd):
+     * escribe la firma + la cabecera IHDR, que es lo que lee getimagesize para
+     * la regla 'dimensions'. Así se puede probar el límite de resolución (RNF-01).
+     */
+    private function fakeImage(string $name, int $width, int $height): UploadedFile
+    {
+        $ihdr = pack('N', $width) . pack('N', $height) . "\x08\x02\x00\x00\x00";
+        $png  = "\x89PNG\r\n\x1a\n"
+              . pack('N', strlen($ihdr)) . 'IHDR' . $ihdr . pack('N', crc32('IHDR' . $ihdr))
+              . pack('N', 0) . 'IEND' . pack('N', crc32('IEND'));
+
+        $path = tempnam(sys_get_temp_dir(), 'mqr') . '.png';
+        file_put_contents($path, $png);
+
+        return new UploadedFile($path, $name, 'image/png', null, true); // test mode
+    }
+
     /** El CRUD de menú exige autenticación (RF-18): sin sesión redirige a login. */
     public function test_guest_cannot_access_dish_management(): void
     {
@@ -48,6 +66,19 @@ class DishManagementTest extends TestCase
             'name'  => 'Bandeja paisa',
             'price' => 28000.00,
         ]);
+    }
+
+    /**
+     * RNF-15: el formulario de crear plato trae el guardado de borrador en
+     * localStorage (sobrevive a recargas / fallos de envío). El comportamiento
+     * se ve en el navegador; aquí se comprueba que el cableado se emite.
+     */
+    public function test_dish_form_has_draft_persistence(): void
+    {
+        $this->actingAs($this->admin())->get(route('dishes.create'))
+            ->assertOk()
+            ->assertSee('dish-create-form', false)
+            ->assertSee('mesaqr.dish.draft', false);
     }
 
     /** RF-01: el nombre y el precio son obligatorios. */
@@ -125,12 +156,10 @@ class DishManagementTest extends TestCase
     {
         Storage::fake('public');
 
-        // Se usa create() con mime explícito (no image()) porque el entorno no
-        // tiene la extensión GD; image() la requiere para generar el binario.
         $this->actingAs($this->admin())->post(route('dishes.store'), [
             'name'  => 'Con foto',
             'price' => 12000,
-            'image' => UploadedFile::fake()->create('plato.jpg', 200, 'image/jpeg'),
+            'image' => $this->fakeImage('plato.png', 800, 600),   // dentro de 720p
         ])->assertRedirect(route('dishes.index'));
 
         $dish = Dish::firstWhere('name', 'Con foto');
@@ -152,20 +181,34 @@ class DishManagementTest extends TestCase
         $this->assertDatabaseMissing('dishes', ['name' => 'Archivo malo']);
     }
 
+    /** RNF-01: se rechaza una imagen que supera 1280x720 (720p). */
+    public function test_dish_image_over_720p_is_rejected(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin())->post(route('dishes.store'), [
+            'name'  => 'Imagen enorme',
+            'price' => 15000,
+            'image' => $this->fakeImage('grande.png', 1920, 1080),  // supera 1280x720
+        ])->assertSessionHasErrors('image');
+
+        $this->assertDatabaseMissing('dishes', ['name' => 'Imagen enorme']);
+    }
+
     /** RNF-01: reemplazar la imagen borra la anterior (sin archivos huérfanos). */
     public function test_updating_image_deletes_the_previous_file(): void
     {
         Storage::fake('public');
 
         $dish = Dish::factory()->create([
-            'image_path' => UploadedFile::fake()->create('vieja.jpg', 100, 'image/jpeg')->store('dishes', 'public'),
+            'image_path' => $this->fakeImage('vieja.png', 400, 300)->store('dishes', 'public'),
         ]);
         $anterior = $dish->image_path;
 
         $this->actingAs($this->admin())->put(route('dishes.update', $dish), [
             'name'  => $dish->name,
             'price' => $dish->price,
-            'image' => UploadedFile::fake()->create('nueva.jpg', 100, 'image/jpeg'),
+            'image' => $this->fakeImage('nueva.png', 640, 480),
         ])->assertRedirect(route('dishes.index'));
 
         Storage::disk('public')->assertMissing($anterior);
@@ -178,7 +221,7 @@ class DishManagementTest extends TestCase
         Storage::fake('public');
 
         $dish = Dish::factory()->create([
-            'image_path' => UploadedFile::fake()->create('foto.jpg', 100, 'image/jpeg')->store('dishes', 'public'),
+            'image_path' => $this->fakeImage('foto.png', 320, 240)->store('dishes', 'public'),
         ]);
         $ruta = $dish->image_path;
 
