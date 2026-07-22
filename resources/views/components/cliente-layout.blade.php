@@ -18,6 +18,20 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans text-cocoa-950 antialiased bg-cream-100 min-h-screen">
+    {{-- RNF-14: aviso cuando el dispositivo pierde conexión. El carrito ya está
+         guardado (RNF-15/localStorage), así que no se congela ni se pierde. El
+         banner sólo aparece al detectar 'offline'; se oculta al volver 'online'.
+         Empieza oculto (display:none) para no parpadear antes de cargar Alpine. --}}
+    <div x-data="{ online: true }"
+         x-init="window.addEventListener('online', () => online = true);
+                 window.addEventListener('offline', () => online = false);"
+         x-show="! online"
+         style="display:none"
+         role="alert"
+         class="bg-amber-500 text-white text-sm text-center px-4 py-2 font-medium">
+        Sin conexión a internet. Tu pedido está guardado; puedes seguir viendo la carta y se enviará cuando vuelva la conexión.
+    </div>
+
     <header class="bg-white shadow-sm border-b border-cream-200">
         <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
             <a href="{{ route('orders.create') }}"

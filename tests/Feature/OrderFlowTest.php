@@ -53,6 +53,17 @@ class OrderFlowTest extends TestCase
             ->assertSee('tableNumber: null', false);
     }
 
+    /**
+     * RNF-14: la vista de cliente trae el aviso de "sin conexión" (se muestra
+     * al detectar el evento offline; el carrito ya persiste, no se congela).
+     */
+    public function test_offline_notice_is_present(): void
+    {
+        $this->get(route('orders.create'))
+            ->assertSee('Sin conexión a internet', false)
+            ->assertSee("addEventListener('offline'", false);
+    }
+
     /** RF-06: una mesa inválida (0, negativa, no numérica) degrada a domicilio. */
     public function test_invalid_table_param_falls_back_to_domicilio(): void
     {
