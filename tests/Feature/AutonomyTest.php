@@ -27,9 +27,11 @@ class AutonomyTest extends TestCase
     {
         preg_match_all('/(?:src|href)="(https?:\/\/[^"\/]+)/i', $html, $matches);
 
+        // Loopback (local, NO externo): localhost, 127.0.0.1 e IPv6 [::1] — este
+        // último aparece cuando corre el dev-server de Vite (npm run dev).
         foreach (array_unique($matches[1]) as $url) {
             $this->assertMatchesRegularExpression(
-                '/\/\/(localhost|127\.0\.0\.1)/i',
+                '/\/\/(localhost|127\.0\.0\.1|\[::1\]|::1)/i',
                 $url,
                 "La página {$page} carga un recurso de un host externo: {$url}"
             );
