@@ -4,9 +4,13 @@
             <h2 class="font-display font-semibold text-xl text-cocoa-900 tracking-tight leading-tight">
                 {{ __('Gestión de Menú') }}
             </h2>
-            <a href="{{ route('dishes.create') }}" class="btn-brand">
-                + Nuevo plato
-            </a>
+            <div class="flex items-center gap-3">
+                {{-- RNF-20: bitácora de cambios del catálogo/precios --}}
+                <a href="{{ route('admin.dishes.audit') }}" class="btn-ghost">Historial</a>
+                <a href="{{ route('dishes.create') }}" class="btn-brand">
+                    + Nuevo plato
+                </a>
+            </div>
         </div>
     </x-slot>
 

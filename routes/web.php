@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ComandaController;
+use App\Http\Controllers\Admin\DishAuditController;
 use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\MetricsController;
 use App\Http\Controllers\Admin\OrderPanelController;
@@ -71,6 +72,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('dishes', DishController::class)->except(['show']);
     Route::patch('dishes/{dish}/toggle', [DishController::class, 'toggle'])
         ->name('dishes.toggle'); // RF-04: alternar disponibilidad
+
+    // RNF-20: bitácora de auditoría del catálogo/precios (sólo lectura).
+    Route::get('/panel/menu/historial', [DishAuditController::class, 'index'])
+        ->name('admin.dishes.audit');
 
     /*
     | MÓDULO 3 — Panel del Restaurante (pedidos entrantes)

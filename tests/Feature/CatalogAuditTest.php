@@ -67,4 +67,27 @@ class CatalogAuditTest extends TestCase
             'dish_id'   => null,       // el plato ya no existe; se conserva el nombre
         ]);
     }
+
+    /** RNF-20: la bitácora del catálogo se ve desde el panel (sólo lectura). */
+    public function test_audit_page_lists_catalog_changes(): void
+    {
+        $admin = User::factory()->create();
+        $dish  = Dish::factory()->create(['name' => 'Ajiaco', 'price' => 10000]);
+
+        $this->actingAs($admin)->put(route('dishes.update', $dish), [
+            'name'  => 'Ajiaco',
+            'price' => 15000,
+        ]);
+
+        $this->actingAs($admin)->get(route('admin.dishes.audit'))
+            ->assertOk()
+            ->assertSee('Historial de cambios del menú')
+            ->assertSee('Ajiaco')
+            ->assertSee('15.000');   // precio nuevo mostrado
+    }
+
+    public function test_guest_cannot_access_the_audit_page(): void
+    {
+        $this->get(route('admin.dishes.audit'))->assertRedirect(route('login'));
+    }
 }
