@@ -20,11 +20,15 @@ class DishAuditLog extends Model
         'dish_name',
         'old_price',
         'new_price',
+        'old_available',
+        'new_available',
     ];
 
     protected $casts = [
-        'old_price' => 'decimal:2',
-        'new_price' => 'decimal:2',
+        'old_price'     => 'decimal:2',
+        'new_price'     => 'decimal:2',
+        'old_available' => 'boolean',
+        'new_available' => 'boolean',
     ];
 
     public function user(): BelongsTo

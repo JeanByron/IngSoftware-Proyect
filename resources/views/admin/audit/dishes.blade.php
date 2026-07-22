@@ -24,7 +24,7 @@
                                 <tr>
                                     <th class="px-4 py-3 text-left font-semibold">Acción</th>
                                     <th class="px-4 py-3 text-left font-semibold">Plato</th>
-                                    <th class="px-4 py-3 text-left font-semibold">Precio</th>
+                                    <th class="px-4 py-3 text-left font-semibold">Cambio</th>
                                     <th class="px-4 py-3 text-left font-semibold">Usuario</th>
                                     <th class="px-4 py-3 text-left font-semibold">Fecha</th>
                                 </tr>
@@ -44,15 +44,26 @@
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 font-medium text-cocoa-900">{{ $log->dish_name }}</td>
-                                        <td class="px-4 py-3 text-cocoa-700 whitespace-nowrap">
-                                            @if ($log->action === 'updated')
-                                                <span class="text-cocoa-500">${{ number_format($log->old_price, 0, ',', '.') }}</span>
-                                                <span class="text-cocoa-400">→</span>
+                                        <td class="px-4 py-3 text-cocoa-700">
+                                            @if ($log->action === 'created')
                                                 <span class="font-display text-cocoa-900">${{ number_format($log->new_price, 0, ',', '.') }}</span>
-                                            @elseif ($log->action === 'created')
-                                                <span class="font-display text-cocoa-900">${{ number_format($log->new_price, 0, ',', '.') }}</span>
-                                            @else
+                                                <span class="text-cocoa-400">·</span>
+                                                {{ $log->new_available ? 'Disponible' : 'No disponible' }}
+                                            @elseif ($log->action === 'deleted')
                                                 <span class="text-cocoa-400">—</span>
+                                            @else
+                                                @php($partes = [])
+                                                @if ($log->old_price != $log->new_price)
+                                                    @php($partes[] = 'Precio $'.number_format($log->old_price, 0, ',', '.').' → $'.number_format($log->new_price, 0, ',', '.'))
+                                                @endif
+                                                @if ($log->old_available !== $log->new_available)
+                                                    @php($partes[] = 'Disponibilidad: '.($log->old_available ? 'Disponible' : 'No disponible').' → '.($log->new_available ? 'Disponible' : 'No disponible'))
+                                                @endif
+                                                @if (empty($partes))
+                                                    <span class="text-cocoa-500">Datos (nombre/descripción)</span>
+                                                @else
+                                                    {{ implode(' · ', $partes) }}
+                                                @endif
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 text-cocoa-700">{{ $log->user?->name ?? 'sistema' }}</td>

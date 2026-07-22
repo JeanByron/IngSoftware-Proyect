@@ -68,6 +68,35 @@ class CatalogAuditTest extends TestCase
         ]);
     }
 
+    /** RNF-20: alternar la disponibilidad queda auditado (antes→después). */
+    public function test_availability_change_is_audited(): void
+    {
+        $admin = User::factory()->create();
+        $dish  = Dish::factory()->create(['is_available' => true]);
+
+        $this->actingAs($admin)->patch(route('dishes.toggle', $dish));   // pasa a no disponible
+
+        $this->assertDatabaseHas('dish_audit_logs', [
+            'dish_id'       => $dish->id,
+            'action'        => 'updated',
+            'old_available' => 1,
+            'new_available' => 0,
+        ]);
+    }
+
+    /** RNF-20: el cambio de disponibilidad se muestra en el historial. */
+    public function test_audit_page_shows_availability_change(): void
+    {
+        $admin = User::factory()->create();
+        $dish  = Dish::factory()->create(['is_available' => true]);
+
+        $this->actingAs($admin)->patch(route('dishes.toggle', $dish));
+
+        $this->actingAs($admin)->get(route('admin.dishes.audit'))
+            ->assertOk()
+            ->assertSee('Disponibilidad', false);
+    }
+
     /** RNF-20: la bitácora del catálogo se ve desde el panel (sólo lectura). */
     public function test_audit_page_lists_catalog_changes(): void
     {

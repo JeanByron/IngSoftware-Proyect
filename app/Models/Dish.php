@@ -56,12 +56,14 @@ class Dish extends Model
     {
         DishAuditLog::create([
             // En 'deleted' el plato ya no existe: dish_id null, se guarda el nombre.
-            'dish_id'   => $action === 'deleted' ? null : $dish->getKey(),
-            'user_id'   => Auth::id(),                              // quién
-            'action'    => $action,
-            'dish_name' => $dish->name,
-            'old_price' => $action === 'updated' ? $dish->getOriginal('price') : null,
-            'new_price' => $action === 'deleted' ? null : $dish->price,
+            'dish_id'       => $action === 'deleted' ? null : $dish->getKey(),
+            'user_id'       => Auth::id(),                              // quién
+            'action'        => $action,
+            'dish_name'     => $dish->name,
+            'old_price'     => $action === 'updated' ? $dish->getOriginal('price') : null,
+            'new_price'     => $action === 'deleted' ? null : $dish->price,
+            'old_available' => $action === 'updated' ? $dish->getOriginal('is_available') : null,
+            'new_available' => $action === 'deleted' ? null : $dish->is_available,
         ]);
     }
 
