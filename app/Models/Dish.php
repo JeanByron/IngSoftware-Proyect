@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
@@ -41,6 +42,27 @@ class Dish extends Model
     {
         static::saved(fn () => self::forgetCatalogCache());   // create + update
         static::deleted(fn () => self::forgetCatalogCache());
+
+        // RNF-20: bitácora de auditoría del catálogo/precios (quién, cuándo,
+        // qué). Se engancha a los eventos del modelo para no olvidarla en
+        // ningún método del controlador.
+        static::created(fn (self $dish) => self::audit($dish, 'created'));
+        static::updated(fn (self $dish) => self::audit($dish, 'updated'));
+        static::deleted(fn (self $dish) => self::audit($dish, 'deleted'));
+    }
+
+    /** RNF-20: registra una modificación del catálogo en la bitácora. */
+    protected static function audit(self $dish, string $action): void
+    {
+        DishAuditLog::create([
+            // En 'deleted' el plato ya no existe: dish_id null, se guarda el nombre.
+            'dish_id'   => $action === 'deleted' ? null : $dish->getKey(),
+            'user_id'   => Auth::id(),                              // quién
+            'action'    => $action,
+            'dish_name' => $dish->name,
+            'old_price' => $action === 'updated' ? $dish->getOriginal('price') : null,
+            'new_price' => $action === 'deleted' ? null : $dish->price,
+        ]);
     }
 
     /**
