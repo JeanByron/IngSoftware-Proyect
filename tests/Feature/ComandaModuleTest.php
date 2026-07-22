@@ -44,6 +44,24 @@ class ComandaModuleTest extends TestCase
         $response->assertSee('2x Bandeja Paisa', false);
     }
 
+    public function test_comanda_shows_prices_and_total(): void
+    {
+        $order = Order::factory()->presencial()->create(['table_number' => 5, 'total' => 29000]);
+        OrderItem::factory()->for($order)->create([
+            'dish_name' => 'Bandeja Paisa',
+            'quantity'  => 2,
+            'subtotal'  => 24000,
+        ]);
+
+        $response = $this->actingAs(User::factory()->create())
+            ->get(route('admin.orders.comanda', $order));
+
+        $response->assertOk();
+        $response->assertSee('$24.000', false);   // subtotal del ítem
+        $response->assertSee('TOTAL', false);
+        $response->assertSee('$29.000', false);   // total a pagar
+    }
+
     public function test_comanda_shows_address_for_delivery(): void
     {
         $order = Order::factory()->domicilio()->create(['address' => 'Carrera 5 # 12-34']);

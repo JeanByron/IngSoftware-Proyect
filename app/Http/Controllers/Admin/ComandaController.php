@@ -55,16 +55,63 @@ class ComandaController extends Controller
         $lineas[] = $subsep;
 
         foreach ($order->items as $item) {
-            // "2x Bandeja Paisa" — se parte si excede el ancho.
-            $lineas[] = wordwrap($item->quantity.'x '.$item->dish_name, self::WIDTH, "\n   ", true);
+            // "2x Bandeja Paisa .......... $24.000" (importe alineado a la derecha).
+            $lineas[] = $this->row($item->quantity.'x '.$item->dish_name, $this->money($item->subtotal));
         }
 
+        $lineas[] = $subsep;
+        // Total a pagar. La devuelta se anota a mano (depende del efectivo recibido).
+        $lineas[] = $this->row('TOTAL', $this->money($order->total));
+        $lineas[] = $this->pagoLinea($order);
         $lineas[] = $subsep;
         $lineas[] = 'Estado: '.$order->statusLabel();
         $lineas[] = $sep;
         $lineas[] = '';
 
         return implode("\n", $lineas);
+    }
+
+    /** Línea del estado de pago (método + si está pagado o pendiente). */
+    private function pagoLinea(Order $order): string
+    {
+        $metodo = match ($order->payment_method) {
+            'tarjeta'       => 'Tarjeta',
+            'efectivo'      => 'Efectivo',
+            'transferencia' => 'Transferencia',
+            default         => null,
+        };
+
+        if ($order->isPaid()) {
+            return 'Pago: '.($metodo ?? '-').' (PAGADO)';
+        }
+
+        if ($order->payment_method === 'efectivo') {
+            return 'Pago: Efectivo (COBRAR AL ENTREGAR)';
+        }
+
+        return 'Pago: '.($metodo ?? '-').' (pendiente)';
+    }
+
+    /** Da formato de dinero (pesos, miles con punto). */
+    private function money($amount): string
+    {
+        return '$'.number_format((float) $amount, 0, ',', '.');
+    }
+
+    /**
+     * Fila de dos columnas: texto a la izquierda, importe alineado a la derecha
+     * en el ancho del ticket. Si no caben juntos, el importe baja a la línea
+     * siguiente alineado a la derecha.
+     */
+    private function row(string $left, string $right): string
+    {
+        $gap = self::WIDTH - mb_strlen($left) - mb_strlen($right);
+
+        if ($gap < 1) {
+            return $left."\n".str_pad($right, self::WIDTH, ' ', STR_PAD_LEFT);
+        }
+
+        return $left.str_repeat(' ', $gap).$right;
     }
 
     /** Centra un texto dentro del ancho del ticket. */
