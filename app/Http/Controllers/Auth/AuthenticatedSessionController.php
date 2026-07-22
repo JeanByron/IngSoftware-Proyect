@@ -26,6 +26,17 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = Auth::user();
+
+        // RNF-19: si el usuario tiene 2FA activo, la contraseña sola no basta:
+        // se cierra la sesión y se le exige el segundo factor antes de entrar.
+        if ($user->hasTwoFactorEnabled()) {
+            Auth::guard('web')->logout();
+            $request->session()->put('2fa:user:id', $user->id);
+
+            return redirect()->route('2fa.challenge');
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard', absolute: false));

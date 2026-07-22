@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
+use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +25,12 @@ Route::middleware('guest')->group(function () {
         ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    // RNF-19: desafío del segundo factor (el usuario aún no está autenticado).
+    Route::get('two-factor-challenge', [TwoFactorChallengeController::class, 'create'])
+        ->name('2fa.challenge');
+    Route::post('two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+        ->middleware('throttle:6,1');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
@@ -55,6 +63,11 @@ Route::middleware('auth')->group(function () {
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+
+    // RNF-19: gestión del 2FA por el usuario desde su perfil.
+    Route::post('two-factor/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
+    Route::post('two-factor/confirm', [TwoFactorController::class, 'confirm'])->name('2fa.confirm');
+    Route::delete('two-factor', [TwoFactorController::class, 'disable'])->name('2fa.disable');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');

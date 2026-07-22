@@ -19,6 +19,13 @@
                 </div>
             </div>
 
+            {{-- RNF-19: segundo factor de autenticación (2FA) --}}
+            <div class="card-brand p-4 sm:p-8">
+                <div class="max-w-xl">
+                    @include('profile.partials.two-factor-form')
+                </div>
+            </div>
+
             <div class="card-brand p-4 sm:p-8">
                 <div class="max-w-xl">
                     @include('profile.partials.delete-user-form')
