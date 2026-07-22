@@ -43,11 +43,17 @@
                     <p class="mt-6 text-xs text-cocoa-400 break-all">{{ $url }}</p>
                 </div>
 
-                {{-- Siguiente ▶: sin tope (el QR se genera para cualquier mesa ≥ 1). --}}
-                <a href="{{ route('admin.tables.qr', ['mesa' => $mesa + 1]) }}"
-                   class="btn-ghost print:hidden shrink-0" aria-label="Ver la mesa {{ $mesa + 1 }}">
-                    Mesa {{ $mesa + 1 }} ▶
-                </a>
+                {{-- Siguiente ▶: deshabilitado en la última mesa (máx. configurable). --}}
+                @if ($mesa < $maxMesas)
+                    <a href="{{ route('admin.tables.qr', ['mesa' => $mesa + 1]) }}"
+                       class="btn-ghost print:hidden shrink-0" aria-label="Ver la mesa {{ $mesa + 1 }}">
+                        Mesa {{ $mesa + 1 }} ▶
+                    </a>
+                @else
+                    <span class="btn-ghost opacity-40 cursor-not-allowed print:hidden shrink-0" aria-disabled="true">
+                        Siguiente ▶
+                    </span>
+                @endif
             </div>
 
             <div class="mt-6 flex justify-center gap-3 print:hidden">

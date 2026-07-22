@@ -15,6 +15,9 @@ return [
     'nombre' => env('COMERCIO_NOMBRE', "Balcoa's Café"),
     'logo'   => env('COMERCIO_LOGO', '/img/logo.png'),
 
+    // Número de mesas del comercio (para el QR presencial). Default 50.
+    'mesas'  => (int) env('COMERCIO_MESAS', 50),
+
     // RNF-05: perfiles de redes sociales del comercio (opcionales).
     'redes' => [
         'instagram' => env('SOCIAL_INSTAGRAM'),

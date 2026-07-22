@@ -58,4 +58,26 @@ class TableQrTest extends TestCase
             ->assertDontSee(route('admin.tables.qr', ['mesa' => 0]), false)
             ->assertSee(route('admin.tables.qr', ['mesa' => 2]), false); // sí a la siguiente
     }
+
+    /** Máximo de mesas (config): una mesa por encima del tope no genera QR. */
+    public function test_table_above_the_maximum_is_rejected(): void
+    {
+        config(['comercio.mesas' => 50]);
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('admin.tables.qr', ['mesa' => 51]))
+            ->assertNotFound();
+    }
+
+    /** En la última mesa, "Siguiente" está deshabilitado (sin enlace a la 51). */
+    public function test_last_table_has_no_next_link(): void
+    {
+        config(['comercio.mesas' => 50]);
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('admin.tables.qr', ['mesa' => 50]))
+            ->assertOk()
+            ->assertDontSee(route('admin.tables.qr', ['mesa' => 51]), false)
+            ->assertSee(route('admin.tables.qr', ['mesa' => 49]), false); // sí a la anterior
+    }
 }

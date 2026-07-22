@@ -21,15 +21,19 @@ class TableQrController extends Controller
     /** Muestra el QR de una mesa concreta, listo para imprimir. */
     public function show(int $mesa): View
     {
-        abort_if($mesa < 1, 404);
+        // Número de mesas del comercio (configurable por .env, default 50).
+        $maxMesas = (int) config('comercio.mesas', 50);
+
+        abort_if($mesa < 1 || $mesa > $maxMesas, 404);
 
         $url = route('orders.create', ['mesa' => $mesa]);
         $svg = $this->renderQr($url);
 
         return view('admin.qr.show', [
-            'mesa' => $mesa,
-            'url'  => $url,
-            'svg'  => $svg,
+            'mesa'     => $mesa,
+            'maxMesas' => $maxMesas,
+            'url'      => $url,
+            'svg'      => $svg,
         ]);
     }
 

@@ -60,6 +60,15 @@ class OrderFlowTest extends TestCase
         $this->get(route('orders.create', ['mesa' => 'abc']))->assertSee('Dirección de entrega');
     }
 
+    /** Una mesa por encima del máximo del comercio también degrada a domicilio. */
+    public function test_table_above_maximum_falls_back_to_domicilio(): void
+    {
+        config(['comercio.mesas' => 50]);
+
+        $this->get(route('orders.create', ['mesa' => 51]))
+            ->assertSee('Dirección de entrega');
+    }
+
     /** RF-08 / RF-15 / RF-17: registrar un pedido presencial asociado a la mesa. */
     public function test_can_register_a_presencial_order(): void
     {

@@ -236,6 +236,10 @@ class OrderController extends Controller
 
         $mesa = (int) $request->query('mesa');
 
-        return $mesa >= 1 ? $mesa : null;
+        // Válida sólo dentro del rango de mesas del comercio (1..máx);
+        // fuera de rango degrada a domicilio.
+        $maxMesas = (int) config('comercio.mesas', 50);
+
+        return ($mesa >= 1 && $mesa <= $maxMesas) ? $mesa : null;
     }
 }
